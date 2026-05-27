@@ -1,1 +1,121 @@
 @import "tailwindcss";
+
+:root {
+  --primary: #0052CC;
+  --primary-dark: #0747A6;
+  --primary-hover: #0065FF;
+  --bg: #F4F5F7;
+  --card: #FFFFFF;
+  --border: #DFE1E6;
+  --text: #172B4D;
+  --text-muted: #6B778C;
+  --success: #00875A;
+  --warning: #FF991F;
+  --danger: #DE350B;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  margin: 0;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C1C7D0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #97A0AF; }
+
+/* Task card hover */
+.task-card {
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  cursor: grab;
+}
+.task-card:hover {
+  box-shadow: 0 4px 16px rgba(9, 30, 66, 0.18);
+  transform: translateY(-1px);
+}
+.task-card:active {
+  cursor: grabbing;
+}
+
+/* Sidebar link transition */
+.sidebar-link {
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+/* Input focus */
+.input-field {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.input-field:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+}
+
+/* Drag overlay */
+.drag-overlay {
+  transform: rotate(2deg) scale(1.02);
+  box-shadow: 0 20px 40px rgba(9, 30, 66, 0.25);
+  opacity: 0.95;
+}
+
+/* Kanban column drop active */
+.col-drop-active {
+  outline: 2px dashed var(--primary);
+  outline-offset: -2px;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  animation: fadeIn 0.15s ease;
+}
+.modal-panel {
+  animation: slideInRight 0.2s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideInRight {
+  from { transform: translateX(40px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes slideInUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-center {
+  animation: slideInUp 0.15s ease;
+}
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  white-space: nowrap;
+}
+
+/* Progress bar */
+.progress-bar {
+  height: 4px;
+  border-radius: 9999px;
+  background: #DFE1E6;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 9999px;
+  transition: width 0.4s ease;
+}
