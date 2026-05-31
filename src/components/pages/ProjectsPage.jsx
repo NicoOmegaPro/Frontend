@@ -29,15 +29,24 @@ export default function ProjectsPage() {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const [isLeader, setIsLeader] = useState(false);
 
-  const canManage = user?.rolId === 1 || user?.rolId === 2;
+  // Puede crear/gestionar proyectos quien lidera algún equipo (o el admin global).
+  const canManage = user?.rolId === 1 || isLeader;
 
   const load = async () => {
     setLoading(true);
     try {
-      const [p, t] = await Promise.all([api.getProjects(), api.getTasks()]);
+      // Cargamos cada recurso de forma independiente: un fallo en tareas/equipos
+      // no debe impedir mostrar los proyectos (o el estado vacío).
+      const [p, t, eq] = await Promise.all([
+        api.getProjects(),
+        api.getTasks().catch(() => []),
+        api.getEquipos().catch(() => []),
+      ]);
       setProjects(Array.isArray(p) ? p : []);
       setTasks(Array.isArray(t) ? t : []);
+      setIsLeader((Array.isArray(eq) ? eq : []).some((e) => e.myRol === 'JEFE_EQUIPO'));
     } catch {
       addToast('Error al cargar proyectos', 'error');
     } finally {

@@ -1,116 +1,174 @@
 @import "tailwindcss";
 
+/* ─── Light mode tokens ─── */
 :root {
-  --primary: #0052CC;
-  --primary-dark: #0747A6;
-  --primary-hover: #0065FF;
-  --bg: #F4F5F7;
-  --card: #FFFFFF;
-  --border: #DFE1E6;
-  --text: #172B4D;
-  --text-muted: #6B778C;
-  --success: #00875A;
-  --warning: #FF991F;
-  --danger: #DE350B;
+  --primary:        #0052CC;
+  --primary-dark:   #0747A6;
+  --primary-hover:  #0065FF;
+  --bg:             #F0F2F5;
+  --bg-secondary:   #E4E6EA;
+  --card:           #FFFFFF;
+  --border:         #D8DCE6;
+  --text:           #172B4D;
+  --text-muted:     #5E6C84;
+  --text-faint:     #B3BAC5;
+  --success:        #00875A;
+  --warning:        #FF991F;
+  --danger:         #DE350B;
+  --sidebar-bg:     linear-gradient(180deg, #0052CC 0%, #0747A6 100%);
 }
 
-* {
-  box-sizing: border-box;
+/* ─── Dark mode tokens ─── */
+html.dark {
+  --primary:        #5a9cf8;
+  --primary-dark:   #0d1526;
+  --primary-hover:  #82b4ff;
+  --bg:             #0b0f17;
+  --bg-secondary:   #283449;
+  --card:           #1b2233;
+  --border:         #34405c;
+  --text:           #eef3fb;
+  --text-muted:     #a3afc7;
+  --text-faint:     #5a677f;
+  --success:        #45d268;
+  --warning:        #e8a92b;
+  --danger:         #ff5d52;
+  --sidebar-bg:     linear-gradient(180deg, #182236 0%, #0d1526 100%);
 }
+
+/* ─── Base ─── */
+* { box-sizing: border-box; }
+
+/* ─── Clickable affordance: todo lo pulsable muestra el cursor de mano ─── */
+button,
+[role="button"],
+a,
+label[for],
+select,
+summary,
+input[type="checkbox"],
+input[type="radio"],
+input[type="file"],
+input[type="submit"],
+input[type="button"] {
+  cursor: pointer;
+}
+button:disabled,
+[role="button"][aria-disabled="true"],
+button[disabled] {
+  cursor: not-allowed;
+}
+.clickable { cursor: pointer; }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: var(--bg);
   color: var(--text);
   margin: 0;
+  font-size: 16px;
+  line-height: 1.55;
+  transition: background 0.25s, color 0.25s;
 }
 
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 7px; height: 7px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #C1C7D0; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #C1C7D0; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #97A0AF; }
+html.dark ::-webkit-scrollbar-thumb { background: #2a3348; }
+html.dark ::-webkit-scrollbar-thumb:hover { background: #3a4560; }
 
-/* Task card hover */
+/* ─── Kanban task card ─── */
 .task-card {
-  transition: box-shadow 0.15s ease, transform 0.1s ease;
+  transition: box-shadow 0.15s ease, transform 0.1s ease, border-color 0.15s ease;
   cursor: grab;
+  border-left-width: 4px;
 }
 .task-card:hover {
-  box-shadow: 0 4px 16px rgba(9, 30, 66, 0.18);
-  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(9, 30, 66, 0.20);
+  transform: translateY(-2px);
 }
-.task-card:active {
-  cursor: grabbing;
+.task-card:active { cursor: grabbing; }
+html.dark .task-card:hover { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55); }
+
+/* ─── Kanban columns — vivid ─── */
+.kanban-col {
+  width: 300px;
+  min-width: 300px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+}
+.kanban-col-body {
+  border-radius: 14px;
+  padding: 12px;
+  min-height: 480px;
+  flex: 1;
+  border: 1.5px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.kanban-col-header {
+  border-radius: 12px 12px 0 0;
+  padding: 2px 4px 12px;
 }
 
-/* Sidebar link transition */
-.sidebar-link {
-  transition: background 0.12s ease, color 0.12s ease;
-}
+/* ─── Sidebar link ─── */
+.sidebar-link { transition: background 0.12s ease, color 0.12s ease; }
 
-/* Input focus */
-.input-field {
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
+/* ─── Input focus ─── */
+.input-field { transition: border-color 0.15s ease, box-shadow 0.15s ease; }
 .input-field:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 2px rgba(0, 82, 204, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 82, 204, 0.18);
 }
 
-/* Drag overlay */
+/* ─── Drag ─── */
 .drag-overlay {
   transform: rotate(2deg) scale(1.02);
   box-shadow: 0 20px 40px rgba(9, 30, 66, 0.25);
   opacity: 0.95;
 }
-
-/* Kanban column drop active */
 .col-drop-active {
   outline: 2px dashed var(--primary);
   outline-offset: -2px;
 }
 
-/* Modal backdrop */
-.modal-backdrop {
-  animation: fadeIn 0.15s ease;
-}
-.modal-panel {
-  animation: slideInRight 0.2s ease;
-}
+/* ─── Animations ─── */
+.modal-backdrop { animation: fadeIn 0.15s ease; }
+.modal-panel    { animation: slideInRight 0.2s ease; }
+.modal-center   { animation: slideInUp 0.15s ease; }
+
 @keyframes fadeIn {
   from { opacity: 0; }
-  to { opacity: 1; }
+  to   { opacity: 1; }
 }
 @keyframes slideInRight {
   from { transform: translateX(40px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(0);    opacity: 1; }
 }
 @keyframes slideInUp {
   from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.modal-center {
-  animation: slideInUp 0.15s ease;
+  to   { transform: translateY(0);    opacity: 1; }
 }
 
-/* Badge */
+/* ─── Badge ─── */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 8px;
+  padding: 3px 10px;
   border-radius: 9999px;
   white-space: nowrap;
 }
 
-/* Progress bar */
+/* ─── Progress bar ─── */
 .progress-bar {
-  height: 4px;
+  height: 6px;
   border-radius: 9999px;
-  background: #DFE1E6;
+  background: var(--bg-secondary);
   overflow: hidden;
 }
 .progress-bar-fill {
@@ -118,4 +176,52 @@ body {
   background: var(--primary);
   border-radius: 9999px;
   transition: width 0.4s ease;
+}
+
+/* ════════════════════════════════════════
+   DARK MODE — override hardcoded Tailwind
+   ════════════════════════════════════════ */
+
+/* Backgrounds */
+html.dark .bg-white                    { background-color: var(--card)          !important; }
+html.dark .bg-\[\#F4F5F7\]            { background-color: var(--bg-secondary)   !important; }
+html.dark .bg-\[\#DEEBFF\]            { background-color: rgba(90,156,248,.14)  !important; }
+html.dark .bg-\[\#E3FCEF\]            { background-color: rgba(63,185,80,.14)   !important; }
+html.dark .bg-\[\#FFEBE6\]            { background-color: rgba(248,81,73,.14)   !important; }
+html.dark .bg-\[\#EAE6FF\]            { background-color: rgba(130,80,255,.12)  !important; }
+html.dark .bg-blue-50\/60             { background-color: rgba(90,156,248,.08)  !important; }
+
+/* Text */
+html.dark .text-\[\#172B4D\]          { color: var(--text)        !important; }
+html.dark .text-\[\#6B778C\]          { color: var(--text-muted)  !important; }
+html.dark .text-\[\#5E6C84\]          { color: var(--text-muted)  !important; }
+html.dark .text-\[\#B3BAC5\]          { color: var(--text-faint)  !important; }
+
+/* Borders */
+html.dark .border-\[\#DFE1E6\]        { border-color: var(--border) !important; }
+html.dark .border-\[\#F4F5F7\]        { border-color: var(--border) !important; }
+html.dark .divide-\[\#F4F5F7\]        > * { border-color: var(--border) !important; }
+
+/* Hover backgrounds */
+html.dark .hover\:bg-\[\#F4F5F7\]:hover  { background-color: var(--bg-secondary) !important; }
+html.dark .hover\:border-\[\#0052CC\]:hover { border-color: var(--primary) !important; }
+
+/* Form controls */
+html.dark input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
+html.dark select,
+html.dark textarea {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text)                    !important;
+  border-color: var(--border)           !important;
+}
+html.dark ::placeholder { color: var(--text-faint) !important; }
+
+/* Shadows */
+html.dark .shadow-xl  { box-shadow: 0 20px 40px rgba(0,0,0,.55) !important; }
+html.dark .shadow-2xl { box-shadow: 0 25px 50px rgba(0,0,0,.65) !important; }
+
+/* Fixed/absolute popups (dropdowns, modals) */
+html.dark [class*="absolute"][class*="bg-white"],
+html.dark [class*="fixed"][class*="bg-white"] {
+  background-color: var(--card) !important;
 }

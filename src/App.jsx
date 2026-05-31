@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/layout/Layout';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
@@ -7,6 +8,8 @@ import DashboardPage from './components/pages/DashboardPage';
 import ProjectsPage from './components/pages/ProjectsPage';
 import ProjectDetailPage from './components/pages/ProjectDetailPage';
 import ProfilePage from './components/pages/ProfilePage';
+import UserProfilePage from './components/pages/UserProfilePage';
+import EquiposPage from './components/pages/EquiposPage';
 
 function Spinner() {
   return (
@@ -24,6 +27,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -41,9 +45,12 @@ export default function App() {
           <Route path="projects" element={<ProjectsPage />} />
           <Route path="projects/:id" element={<ProjectDetailPage />} />
           <Route path="profile" element={<ProfilePage />} />
+          <Route path="users/:id" element={<UserProfilePage />} />
+          <Route path="equipos" element={<EquiposPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
+    </ThemeProvider>
   );
 }

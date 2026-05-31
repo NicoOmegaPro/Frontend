@@ -16,6 +16,7 @@ const PRIORIDADES = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
 function getAdjuntoUrl(rutaLocal) {
   if (!rutaLocal) return '';
   if (rutaLocal.startsWith('http')) return rutaLocal;
+  
   return `${BACKEND}${rutaLocal}`;
 }
 
@@ -91,7 +92,7 @@ function SelectDropdown({ value, options, onChange, renderOption, renderValue })
   );
 }
 
-export default function TaskDetailModal({ taskId, onClose, onUpdated, onDeleted }) {
+export default function TaskDetailModal({ taskId, members, onClose, onUpdated, onDeleted }) {
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -99,7 +100,7 @@ export default function TaskDetailModal({ taskId, onClose, onUpdated, onDeleted 
   const [subtareas, setSubtareas] = useState([]);
   const [comentarios, setComentarios] = useState([]);
   const [adjuntos, setAdjuntos] = useState([]);
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(Array.isArray(members) ? members : []);
   const [sprints, setSprints] = useState([]);
   const [etiquetas, setEtiquetas] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -121,12 +122,14 @@ export default function TaskDetailModal({ taskId, onClose, onUpdated, onDeleted 
   const load = async () => {
     setLoading(true);
     try {
+      // Si nos pasan los miembros del proyecto, evitamos pedir TODOS los usuarios.
+      const hasMembers = Array.isArray(members) && members.length > 0;
       const [t, allSubs, allComments, allAdj, u, allSprints, etiq] = await Promise.all([
         api.getTask(taskId),
         api.getSubtareas().catch(() => []),
         api.getComentarios().catch(() => []),
         api.getAdjuntos().catch(() => []),
-        api.getUsers().catch(() => []),
+        hasMembers ? Promise.resolve(members) : api.getUsers().catch(() => []),
         api.getSprints().catch(() => []),
         api.getEtiquetas().catch(() => []),
       ]);
@@ -612,8 +615,8 @@ export default function TaskDetailModal({ taskId, onClose, onUpdated, onDeleted 
 
           {/* Right sidebar — details */}
           <div
-            className="w-52 flex-shrink-0 border-l border-[#DFE1E6] px-4 py-5 space-y-5 overflow-y-auto"
-            style={{ background: '#FAFBFC' }}
+            className="w-52 flex-shrink-0 border-l px-4 py-5 space-y-5 overflow-y-auto"
+            style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
           >
             {/* Status */}
             <div>

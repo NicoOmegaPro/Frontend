@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, KanbanSquare, Users, Zap, CheckCircle2 } from 'lucide-react';
+
+const FEATURES = [
+  { icon: KanbanSquare, text: 'Tableros Kanban con arrastrar y soltar' },
+  { icon: Users,        text: 'Equipos, roles e invitaciones' },
+  { icon: Zap,          text: 'Sprints y seguimiento en tiempo real' },
+];
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -29,27 +35,66 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(135deg, #0747A6 0%, #0052CC 55%, #2684FF 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #0747A6 0%, #0052CC 50%, #2684FF 100%)' }}
     >
-      <div className="w-full max-w-sm">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <div
-            className="inline-flex items-center justify-center w-14 h-14 rounded-2xl shadow-2xl mb-3"
-            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(10px)' }}
-          >
-            <span className="text-white text-2xl font-black">K</span>
+      <div className="w-full max-w-4xl grid lg:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
+        {/* Brand panel */}
+        <div
+          className="hidden lg:flex flex-col justify-between p-10 text-white relative"
+          style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03))', backdropFilter: 'blur(6px)' }}
+        >
+          <div>
+            <div className="flex items-center gap-3 mb-10">
+              <div
+                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
+                style={{ background: 'rgba(255,255,255,0.22)' }}
+              >
+                <span className="text-2xl font-black">K</span>
+              </div>
+              <span className="text-2xl font-bold tracking-tight">KanbanApp</span>
+            </div>
+            <h2 className="text-3xl font-extrabold leading-tight mb-3">
+              Organiza el trabajo<br />de tu equipo, sin fricción.
+            </h2>
+            <p className="text-white/70 text-base leading-relaxed">
+              Gestión colaborativa de proyectos al estilo Jira, hecha simple.
+            </p>
           </div>
-          <h1 className="text-white text-2xl font-bold tracking-tight">KanbanApp</h1>
-          <p className="text-white/60 text-sm mt-1">Gestión colaborativa de proyectos</p>
+
+          <ul className="space-y-4 mt-10">
+            {FEATURES.map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3">
+                <span
+                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(255,255,255,0.18)' }}
+                >
+                  <Icon size={18} />
+                </span>
+                <span className="text-white/90 text-sm font-medium">{text}</span>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-[#172B4D] text-lg font-semibold mb-6">Iniciar sesión</h2>
+        {/* Form panel */}
+        <div className="bg-white p-8 sm:p-10 flex flex-col justify-center">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div
+              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white"
+              style={{ background: 'var(--primary)' }}
+            >
+              <span className="text-xl font-black">K</span>
+            </div>
+            <span className="text-xl font-bold text-[#172B4D]">KanbanApp</span>
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <h1 className="text-2xl font-extrabold text-[#172B4D] mb-1">Bienvenido de nuevo</h1>
+          <p className="text-[#6B778C] text-sm mb-7">Inicia sesión para continuar</p>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-2">
                 Correo electrónico
               </label>
               <input
@@ -58,12 +103,12 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                className="input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2.5 text-sm text-[#172B4D] placeholder-[#B3BAC5]"
+                className="input-field w-full border border-[#DFE1E6] rounded-xl px-4 py-3 text-[15px] text-[#172B4D] placeholder-[#B3BAC5]"
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">
+              <label className="block text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-2">
                 Contraseña
               </label>
               <div className="relative">
@@ -73,14 +118,14 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2.5 text-sm text-[#172B4D] placeholder-[#B3BAC5] pr-10"
+                  className="input-field w-full border border-[#DFE1E6] rounded-xl px-4 py-3 text-[15px] text-[#172B4D] placeholder-[#B3BAC5] pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B778C] hover:text-[#172B4D]"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B778C] hover:text-[#172B4D]"
                 >
-                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
                 </button>
               </div>
             </div>
@@ -88,18 +133,18 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-2.5 rounded-lg text-white font-semibold text-sm disabled:opacity-60 transition-opacity hover:opacity-90 mt-2"
+              className="w-full py-3 rounded-xl text-white font-bold text-[15px] disabled:opacity-60 transition-all hover:opacity-90 hover:shadow-lg flex items-center justify-center gap-2"
               style={{ background: 'var(--primary)' }}
             >
-              {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+              {loading ? 'Iniciando sesión...' : (<><CheckCircle2 size={18} /> Iniciar sesión</>)}
             </button>
           </form>
 
-          <p className="mt-5 text-center text-sm text-[#6B778C]">
+          <p className="mt-6 text-center text-sm text-[#6B778C]">
             ¿No tienes cuenta?{' '}
             <Link
               to="/register"
-              className="font-semibold hover:underline"
+              className="font-bold hover:underline"
               style={{ color: 'var(--primary)' }}
             >
               Regístrate aquí

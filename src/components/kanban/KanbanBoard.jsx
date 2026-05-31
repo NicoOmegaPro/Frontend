@@ -19,6 +19,7 @@ export default function KanbanBoard({
   onStatusChange,
   onTaskClick,
   onAddTask,
+  myTeamRole,
 }) {
   const [activeTask, setActiveTask] = useState(null);
 
@@ -51,9 +52,12 @@ export default function KanbanBoard({
     if (!ESTADOS.includes(targetStatus)) return;
     const task = tasks.find((t) => String(t.id) === String(active.id));
     if (!task) return;
-    if (task.estado !== targetStatus) {
-      onStatusChange(task.id, targetStatus);
-    }
+    if (task.estado === targetStatus) return;
+
+    // TRABAJADOR no puede arrastrar a FINALIZADO
+    if (targetStatus === 'FINALIZADO' && myTeamRole === 'TRABAJADOR') return;
+
+    onStatusChange(task.id, targetStatus);
   };
 
   const handleDragCancel = () => setActiveTask(null);

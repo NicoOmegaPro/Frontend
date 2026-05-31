@@ -11,6 +11,18 @@ import TaskDetailModal from '../tasks/TaskDetailModal';
 import CreateTaskModal from '../tasks/CreateTaskModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { Bar, Doughnut } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from 'chart.js';
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const PROYECTO_ESTADO_STYLE = {
   ACTIVO:     { bg: '#E3FCEF', color: '#00875A' },
@@ -62,7 +74,7 @@ export default function ProjectDetailPage() {
   const [newSprint, setNewSprint] = useState({ nombre: '', fechaInicio: '', fechaFin: '' });
   const [creatingSprintLoading, setCreatingSprintLoading] = useState(false);
 
-  const canManage = user?.rolId === 1 || user?.rolId === 2 || user?.rolId === 3;
+  const canManage = true; // Se calcula después de cargar el proyecto (ver myTeamRole abajo)
 
   const load = useCallback(async () => {
     try {
@@ -140,6 +152,76 @@ export default function ProjectDetailPage() {
   const doneTasks = tasks.filter((t) => t.estado === 'FINALIZADO').length;
   const progress = tasks.length ? Math.round((doneTasks / tasks.length) * 100) : 0;
 
+  // Miembros del proyecto (para el filtro de asignado). Vienen incluidos en GET /projects/:id.
+  const projectMembers = (project?.miembros || [])
+    .map((m) => m.usuario)
+    .filter(Boolean);
+
+  // Rol del usuario en este proyecto (viene del backend)
+  const myTeamRole = project?.myProjectRole ?? null;
+  const canManageProject = myTeamRole === 'JEFE_EQUIPO' || myTeamRole === 'JEFE_PROYECTO' || user?.rolId === 1;
+  const canCreateSprint  = canManageProject || myTeamRole === 'SUPERVISOR';
+  const canCreateTask    = !!myTeamRole; // cualquier miembro del proyecto puede crear tarea
+
+  const priorityBarData = {
+    labels: ['Urgente', 'Alta', 'Media', 'Baja'],
+    datasets: [{
+      label: 'Tareas',
+      data: [
+        tasks.filter((t) => t.prioridad === 'URGENTE').length,
+        tasks.filter((t) => t.prioridad === 'ALTA').length,
+        tasks.filter((t) => t.prioridad === 'MEDIA').length,
+        tasks.filter((t) => t.prioridad === 'BAJA').length,
+      ],
+      backgroundColor: ['#DE350B', '#FF7452', '#FF991F', '#00875A'],
+      borderRadius: 4,
+      barThickness: 18,
+    }],
+  };
+
+  const priorityBarOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 12 }, color: '#5E6C84' } },
+      y: { ticks: { font: { size: 12 }, stepSize: 1, color: '#5E6C84' }, grid: { color: '#F4F5F7' } },
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} tarea${ctx.raw !== 1 ? 's' : ''}` } },
+    },
+  };
+
+  const statusDoughnutData = {
+    labels: ['Pendiente', 'En progreso', 'En revisión', 'Finalizado'],
+    datasets: [{
+      data: [
+        tasks.filter((t) => t.estado === 'PENDIENTE').length,
+        tasks.filter((t) => t.estado === 'EN_PROGRESO').length,
+        tasks.filter((t) => t.estado === 'EN_REVISION').length,
+        tasks.filter((t) => t.estado === 'FINALIZADO').length,
+      ],
+      backgroundColor: ['#6B778C', '#0052CC', '#FF991F', '#00875A'],
+      borderWidth: 0,
+      hoverOffset: 4,
+    }],
+  };
+
+  const statusDoughnutOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    cutout: '62%',
+    plugins: {
+      legend: {
+        position: 'bottom',
+        labels: { font: { size: 13 }, padding: 12, usePointStyle: true, pointStyleWidth: 9, color: '#5E6C84' },
+      },
+      tooltip: {
+        callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}` },
+      },
+    },
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -175,7 +257,7 @@ export default function ProjectDetailPage() {
             </button>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-lg font-bold text-[#172B4D]">{project.nombre}</h1>
+                <h1 className="text-2xl font-extrabold text-[#172B4D]">{project.nombre}</h1>
                 <span className="badge" style={{ background: estadoStyle.bg, color: estadoStyle.color }}>
                   {project.estado}
                 </span>
@@ -194,6 +276,14 @@ export default function ProjectDetailPage() {
                 )}
                 <span className="text-xs text-[#6B778C]">{tasks.length} tareas</span>
                 <span className="text-xs text-[#6B778C]">{sprints.length} sprints</span>
+                {myTeamRole && (
+                  <span className="badge" style={{
+                    background: myTeamRole === 'JEFE_EQUIPO' ? 'rgba(245,166,35,.15)' : myTeamRole === 'JEFE_PROYECTO' ? 'rgba(90,156,248,.15)' : myTeamRole === 'SUPERVISOR' ? 'rgba(167,139,250,.15)' : 'rgba(63,185,80,.15)',
+                    color: myTeamRole === 'JEFE_EQUIPO' ? '#f5a623' : myTeamRole === 'JEFE_PROYECTO' ? '#5a9cf8' : myTeamRole === 'SUPERVISOR' ? '#a78bfa' : '#3fb950',
+                  }}>
+                    {{ JEFE_EQUIPO: 'Jefe de Equipo', JEFE_PROYECTO: 'Jefe de Proyecto', SUPERVISOR: 'Supervisor', TRABAJADOR: 'Trabajador' }[myTeamRole]}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -246,7 +336,7 @@ export default function ProjectDetailPage() {
                     </div>
                   </button>
                 ))}
-                {canManage && (
+                {canCreateSprint && (
                   <>
                     <div className="border-t border-[#DFE1E6] my-1" />
                     <button
@@ -286,7 +376,7 @@ export default function ProjectDetailPage() {
           <option value="BAJA">Baja</option>
         </select>
 
-        {/* Assignee filter */}
+        {/* Assignee filter — solo miembros de este proyecto */}
         <select
           value={asignadoFilter}
           onChange={(e) => setAsignadoFilter(e.target.value)}
@@ -294,23 +384,44 @@ export default function ProjectDetailPage() {
         >
           <option value="ALL">Todos los usuarios</option>
           <option value="ME">Mis tareas</option>
-          {users.map((u) => (
+          {projectMembers.map((u) => (
             <option key={u.id} value={u.id}>{u.nombre}</option>
           ))}
         </select>
 
         <div className="ml-auto flex items-center gap-2">
           {currentSprint && <SprintBadge sprint={currentSprint} />}
-          <button
-            onClick={() => { setCreateTaskStatus('PENDIENTE'); setShowCreateTask(true); }}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition-opacity"
-            style={{ background: 'var(--primary)' }}
-          >
-            <Plus size={15} />
-            Nueva tarea
-          </button>
+          {/* En estado vacío el CTA central ya cubre la creación: evitamos el botón duplicado. */}
+          {tasks.length > 0 && (
+            <button
+              onClick={() => { setCreateTaskStatus('PENDIENTE'); setShowCreateTask(true); }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-white text-sm font-semibold hover:opacity-90 transition-opacity shadow-sm"
+              style={{ background: 'var(--primary)' }}
+            >
+              <Plus size={16} />
+              Nueva tarea
+            </button>
+          )}
         </div>
       </div>
+
+      {/* Charts row */}
+      {tasks.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
+            <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por prioridad</p>
+            <div style={{ height: 150 }}>
+              <Bar data={priorityBarData} options={priorityBarOptions} />
+            </div>
+          </div>
+          <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
+            <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por estado</p>
+            <div style={{ height: 150 }}>
+              <Doughnut data={statusDoughnutData} options={statusDoughnutOptions} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Kanban Board */}
       <div className="flex-1">
@@ -338,6 +449,7 @@ export default function ProjectDetailPage() {
               setCreateTaskStatus(status);
               setShowCreateTask(true);
             }}
+            myTeamRole={myTeamRole}
           />
         )}
       </div>
@@ -346,6 +458,7 @@ export default function ProjectDetailPage() {
       {selectedTask && (
         <TaskDetailModal
           taskId={selectedTask}
+          members={projectMembers}
           onClose={() => setSelectedTask(null)}
           onUpdated={load}
           onDeleted={() => { setSelectedTask(null); load(); }}
@@ -356,9 +469,19 @@ export default function ProjectDetailPage() {
       {showCreateTask && (
         <CreateTaskModal
           projectId={projectId}
+          members={projectMembers}
           defaultStatus={createTaskStatus}
           onClose={() => setShowCreateTask(false)}
-          onCreated={() => { setShowCreateTask(false); load(); }}
+          onCreated={(newTask) => {
+            setShowCreateTask(false);
+            // Inserción optimista: la tarea aparece al instante, sin esperar al refetch.
+            if (newTask && newTask.id && newTask.proyectoId === projectId) {
+              setTasks((prev) =>
+                prev.some((t) => t.id === newTask.id) ? prev : [...prev, newTask]
+              );
+            }
+            load();
+          }}
         />
       )}
 
@@ -391,6 +514,7 @@ export default function ProjectDetailPage() {
                 <div>
                   <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Inicio *</label>
                   <input
+                  
                     type="date"
                     value={newSprint.fechaInicio}
                     onChange={(e) => setNewSprint((p) => ({ ...p, fechaInicio: e.target.value }))}

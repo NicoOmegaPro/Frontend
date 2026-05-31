@@ -6,9 +6,9 @@ import { useToast } from '../../context/ToastContext';
 const inp =
   'input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm text-[#172B4D] placeholder-[#B3BAC5] bg-white';
 
-export default function CreateTaskModal({ projectId, defaultStatus = 'PENDIENTE', onClose, onCreated }) {
+export default function CreateTaskModal({ projectId, members, defaultStatus = 'PENDIENTE', onClose, onCreated }) {
   const { addToast } = useToast();
-  const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState(Array.isArray(members) ? members : []);
   const [sprints, setSprints] = useState([]);
   const [form, setForm] = useState({
     titulo: '',
@@ -21,6 +21,14 @@ export default function CreateTaskModal({ projectId, defaultStatus = 'PENDIENTE'
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Si nos pasan los miembros del proyecto, los usamos directamente (sin pedir TODOS los usuarios).
+    if (Array.isArray(members) && members.length > 0) {
+      setUsers(members);
+      api.getSprints()
+        .then((s) => setSprints(Array.isArray(s) ? s.filter((sp) => sp.proyectoId === projectId) : []))
+        .catch(() => setSprints([]));
+      return;
+    }
     Promise.all([
       api.getUsers().catch(() => []),
       api.getSprints().catch(() => []),
@@ -28,7 +36,7 @@ export default function CreateTaskModal({ projectId, defaultStatus = 'PENDIENTE'
       setUsers(Array.isArray(u) ? u : []);
       setSprints(Array.isArray(s) ? s.filter((sp) => sp.proyectoId === projectId) : []);
     });
-  }, [projectId]);
+  }, [projectId, members]);
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
@@ -37,7 +45,7 @@ export default function CreateTaskModal({ projectId, defaultStatus = 'PENDIENTE'
     if (!form.titulo.trim()) return;
     setLoading(true);
     try {
-      await api.createTask({
+      const created = await api.createTask({
         titulo: form.titulo,
         descripcion: form.descripcion || undefined,
         estado: form.estado,
@@ -47,7 +55,7 @@ export default function CreateTaskModal({ projectId, defaultStatus = 'PENDIENTE'
         sprintId: form.sprintId ? parseInt(form.sprintId) : undefined,
       });
       addToast('Tarea creada correctamente', 'success');
-      onCreated();
+      onCreated(created);
     } catch (err) {
       addToast(err.message, 'error');
     } finally {

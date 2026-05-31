@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
 import { api } from '../../api';
@@ -8,22 +8,16 @@ export default function RegisterPage() {
   const [nombre, setNombre] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [rolId, setRolId] = useState('4');
   const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [roles, setRoles] = useState([]);
   const { addToast } = useToast();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    api.getRoles().then(setRoles).catch(() => {});
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.register({ nombre, email, password, rolId: parseInt(rolId) });
+      await api.register({ nombre, email, password });
       addToast('Cuenta creada correctamente. ¡Inicia sesión!', 'success');
       navigate('/login');
     } catch (err) {
@@ -106,24 +100,10 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            {roles.length > 0 && (
-              <div>
-                <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">
-                  Rol
-                </label>
-                <select
-                  value={rolId}
-                  onChange={(e) => setRolId(e.target.value)}
-                  className="input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2.5 text-sm text-[#172B4D] bg-white"
-                >
-                  {roles.map((r) => (
-                    <option key={r.id} value={r.id}>
-                      {r.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
+            <p className="text-xs text-[#6B778C] leading-relaxed">
+              Tu cuenta se crea sin rol. Obtendrás un rol al crear un equipo (serás su Jefe de Equipo)
+              o cuando te asignen uno dentro de un proyecto.
+            </p>
 
             <button
               type="submit"

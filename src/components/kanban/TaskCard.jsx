@@ -51,8 +51,8 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
   return (
     <div
       ref={setNodeRef}
-      style={style}
-      className="task-card bg-white rounded-lg border border-[#DFE1E6] p-3 select-none"
+      style={{ ...style, borderLeftColor: pri.color }}
+      className="task-card bg-white rounded-xl border border-[#DFE1E6] p-3.5 select-none"
       onClick={onClick}
       {...attributes}
       {...listeners}
@@ -71,7 +71,7 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
       )}
 
       {/* Title */}
-      <p className="text-sm font-medium text-[#172B4D] mb-2 line-clamp-3 leading-snug">
+      <p className="text-[15px] font-semibold text-[#172B4D] mb-2.5 line-clamp-3 leading-snug">
         {task.titulo}
       </p>
 

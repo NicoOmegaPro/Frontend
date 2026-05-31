@@ -32,6 +32,10 @@ export const api = {
   createProject: (data) => request('POST', '/projects', data),
   updateProject: (id, data) => request('PUT', `/projects/${id}`, data),
   deleteProject: (id) => request('DELETE', `/projects/${id}`),
+  // Miembros y roles del proyecto
+  addProjectMember: (projectId, data) => request('POST', `/projects/${projectId}/miembros`, data),
+  updateProjectMember: (projectId, userId, rol) => request('PUT', `/projects/${projectId}/miembros/${userId}`, { rol }),
+  removeProjectMember: (projectId, userId) => request('DELETE', `/projects/${projectId}/miembros/${userId}`),
 
   getTasks: () => request('GET', '/tasks'),
   getTask: (id) => request('GET', `/tasks/${id}`),
@@ -49,12 +53,20 @@ export const api = {
   deleteComentario: (id) => request('DELETE', `/comentarios/${id}`),
 
   getUsers: () => request('GET', '/users'),
+  getUser: (id) => request('GET', `/users/${id}`),
   updateUser: (id, data) => request('PUT', `/users/${id}`, data),
 
   getEquipos: () => request('GET', '/equipos'),
+  getEquipo: (id) => request('GET', `/equipos/${id}`),
   createEquipo: (data) => request('POST', '/equipos', data),
   updateEquipo: (id, data) => request('PUT', `/equipos/${id}`, data),
   deleteEquipo: (id) => request('DELETE', `/equipos/${id}`),
+  // Invitaciones (los invitados entran como miembros del equipo)
+  invitarMiembro: (equipoId, email) => request('POST', `/equipos/${equipoId}/invitar`, { email }),
+  aceptarInvitacion: (equipoId) => request('PUT', `/equipos/${equipoId}/aceptar`),
+  rechazarInvitacion: (equipoId) => request('DELETE', `/equipos/${equipoId}/rechazar`),
+  // Gestión de miembros
+  expulsarMiembro: (equipoId, userId) => request('DELETE', `/equipos/${equipoId}/miembros/${userId}`),
 
   getSprints: () => request('GET', '/sprints'),
   createSprint: (data) => request('POST', '/sprints', data),
@@ -68,6 +80,22 @@ export const api = {
   getAdjuntos: () => request('GET', '/adjuntos'),
   createAdjunto: (data) => request('POST', '/adjuntos', data),
   deleteAdjunto: (id) => request('DELETE', `/adjuntos/${id}`),
+
+  uploadAvatar: async (id, file) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('avatar', file);
+    const res = await fetch(`${API_BASE}/users/${id}/avatar`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Error de red' }));
+      throw new Error(err.error || 'Error al subir el avatar');
+    }
+    return res.json();
+  },
 
   uploadAdjunto: async (file) => {
     const token = localStorage.getItem('token');

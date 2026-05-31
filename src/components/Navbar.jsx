@@ -4,6 +4,7 @@ export default function Navbar({ user, onLogout }) {
       <span className="font-bold text-indigo-600 text-lg">KanbanApp</span>
       <div className="flex items-center gap-4">
         {user && <span className="text-sm text-gray-600"><strong>{user.nombre}</strong></span>}
+        
         <button onClick={onLogout} className="text-sm text-red-500 hover:underline font-medium">
           Cerrar sesión
         </button>
