@@ -1,41 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
-import { Save, User, FileText, Shield, Camera, Users, CheckSquare, Clock, Target } from 'lucide-react';
+import { Save, User, Shield, Camera, Users, Lock, Eye, EyeOff } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { formatDistanceToNow } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Doughnut } from 'react-chartjs-2';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
 
 const API_BASE = 'http://localhost:3000';
 
-// El único rol global es Administrador (rolId === 1). Los demás roles son por
-// equipo y por proyecto, así que el resto de cuentas no muestran badge global.
 const ADMIN_STYLE = { bg: 'rgba(248,81,73,.15)', color: '#f85149' };
-
-const ACCION_ICON = { CREADO: '✨', ACTUALIZADO: '✏️', ELIMINADO: '🗑️', COMPLETADO: '✅' };
-const ENTIDAD_LABEL = {
-  TAREA: 'tarea', PROYECTO: 'proyecto', SPRINT: 'sprint',
-  SUBTAREA: 'subtarea', COMENTARIO: 'comentario', ADJUNTO: 'adjunto',
-};
 
 const inp = 'w-full border rounded-xl px-4 py-3 text-sm placeholder-[#B3BAC5] input-field transition-all';
 
 function SectionCard({ title, icon: Icon, children, className = '' }) {
   return (
     <div
-      className={`rounded-2xl border p-6 ${className}`}
+      className={`rounded-2xl border p-7 ${className}`}
       style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
     >
       {title && (
         <h2
-          className="font-semibold text-sm flex items-center gap-2 mb-5"
+          className="font-semibold text-[15px] flex items-center gap-2.5 mb-6"
           style={{ color: 'var(--text)' }}
         >
-          {Icon && <Icon size={16} style={{ color: 'var(--primary)' }} />}
+          {Icon && <Icon size={17} style={{ color: 'var(--primary)' }} />}
           {title}
         </h2>
       )}
@@ -47,38 +34,24 @@ function SectionCard({ title, icon: Icon, children, className = '' }) {
 export default function ProfilePage() {
   const { user, setUser } = useAuth();
   const { addToast } = useToast();
+  const navigate = useNavigate();
   const fileRef = useRef(null);
 
   const [form, setForm] = useState({ nombre: '', descripcion: '' });
-  const [historial, setHistorial] = useState([]);
-  const [myTasks, setMyTasks] = useState([]);
+  const [pwForm, setPwForm] = useState({ current: '', next: '', confirm: '' });
+  const [showPw, setShowPw] = useState({ current: false, next: false, confirm: false });
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [pwLoading, setPwLoading] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [stats, setStats] = useState({ total: 0, done: 0, inProgress: 0, pending: 0, revision: 0 });
 
   useEffect(() => {
     if (!user) return;
     setForm({ nombre: user.nombre || '', descripcion: user.descripcion || '' });
 
-    Promise.all([
-      api.getHistorial().catch(() => []),
-      api.getTasks().catch(() => []),
-      api.getEquipos().catch(() => []),
-    ]).then(([h, t, eq]) => {
-      const myH = Array.isArray(h) ? h.filter((x) => x.usuarioId === user.id).slice(0, 30) : [];
-      const myT = Array.isArray(t) ? t.filter((x) => x.asignadoAId === user.id) : [];
-      setHistorial(myH);
-      setMyTasks(myT);
-      setEquipos(Array.isArray(eq) ? eq : []);
-      setStats({
-        total:      myT.length,
-        done:       myT.filter((t) => t.estado === 'FINALIZADO').length,
-        inProgress: myT.filter((t) => t.estado === 'EN_PROGRESO').length,
-        revision:   myT.filter((t) => t.estado === 'EN_REVISION').length,
-        pending:    myT.filter((t) => t.estado === 'PENDIENTE').length,
-      });
-    });
+    api.getEquipos()
+      .then((eq) => setEquipos(Array.isArray(eq) ? eq : []))
+      .catch(() => setEquipos([]));
   }, [user]);
 
   const handleAvatarClick = () => fileRef.current?.click();
@@ -100,6 +73,28 @@ export default function ProfilePage() {
   };
 
   const setField = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const setPwField = (field) => (e) => setPwForm((prev) => ({ ...prev, [field]: e.target.value }));
+  const toggleShow = (field) => setShowPw((prev) => ({ ...prev, [field]: !prev[field] }));
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    if (pwForm.next !== pwForm.confirm) {
+      addToast('Las contraseñas nuevas no coinciden', 'error'); return;
+    }
+    if (pwForm.next.length < 6) {
+      addToast('La contraseña debe tener al menos 6 caracteres', 'error'); return;
+    }
+    setPwLoading(true);
+    try {
+      await api.changePassword(user.id, pwForm.current, pwForm.next);
+      addToast('Contraseña actualizada correctamente', 'success');
+      setPwForm({ current: '', next: '', confirm: '' });
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setPwLoading(false);
+    }
+  };
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -110,7 +105,11 @@ export default function ProfilePage() {
         nombre: form.nombre,
         descripcion: form.descripcion,
       });
-      setUser((prev) => ({ ...prev, nombre: updated.user?.nombre ?? updated.nombre, descripcion: updated.user?.descripcion ?? updated.descripcion }));
+      setUser((prev) => ({
+        ...prev,
+        nombre: updated.user?.nombre ?? updated.nombre,
+        descripcion: updated.user?.descripcion ?? updated.descripcion,
+      }));
       addToast('Perfil actualizado', 'success');
     } catch (err) {
       addToast(err.message, 'error');
@@ -122,55 +121,33 @@ export default function ProfilePage() {
   if (!user) return null;
 
   const isAdmin = user.rolId === 1;
-  const completionPct = stats.total > 0 ? Math.round((stats.done / stats.total) * 100) : 0;
-
-  const doughnutData = {
-    labels: ['Finalizadas', 'En progreso', 'En revisión', 'Pendientes'],
-    datasets: [{
-      data: [stats.done, stats.inProgress, stats.revision, stats.pending],
-      backgroundColor: ['#3fb950', '#5a9cf8', '#d29922', '#8892aa'],
-      borderWidth: 0,
-      hoverOffset: 5,
-    }],
-  };
-  const doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '68%',
-    plugins: {
-      legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 } },
-      tooltip: { callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}` } },
-    },
-  };
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>Mi Perfil</h1>
-        <span className="text-sm" style={{ color: 'var(--text-muted)' }}>
-          Gestiona tu información personal
-        </span>
+      <div>
+        <h1 className="text-[28px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Mi Perfil</h1>
+        <p className="text-[14px] mt-1" style={{ color: 'var(--text-muted)' }}>Gestiona tu información personal</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+
         {/* ── Left column ── */}
         <div className="space-y-5">
 
-          {/* Avatar card */}
+          {/* Avatar */}
           <SectionCard>
-            <div className="flex flex-col items-center text-center gap-3">
-              {/* Avatar with upload overlay */}
+            <div className="flex flex-col items-center text-center gap-4">
               <div className="relative group">
                 {user.imagenPerfil ? (
                   <img
                     src={`${API_BASE}${user.imagenPerfil}`}
                     alt={user.nombre}
-                    className="w-24 h-24 rounded-full object-cover ring-4"
+                    className="w-28 h-28 rounded-full object-cover ring-4"
                     style={{ ringColor: 'var(--primary)' }}
                   />
                 ) : (
                   <div
-                    className="w-24 h-24 rounded-full flex items-center justify-center text-white text-4xl font-bold ring-4"
+                    className="w-28 h-28 rounded-full flex items-center justify-center text-white text-5xl font-bold ring-4"
                     style={{ background: 'var(--primary)', ringColor: 'var(--border)' }}
                   >
                     {user.nombre?.charAt(0).toUpperCase()}
@@ -180,43 +157,27 @@ export default function ProfilePage() {
                   onClick={handleAvatarClick}
                   disabled={uploadingPhoto}
                   className="absolute inset-0 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                  style={{ background: 'rgba(0,0,0,0.5)' }}
+                  style={{ background: 'rgba(0,0,0,0.52)' }}
                   title="Cambiar foto"
                 >
-                  {uploadingPhoto ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Camera size={20} className="text-white" />
-                  )}
+                  {uploadingPhoto
+                    ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    : <Camera size={20} className="text-white" />
+                  }
                 </button>
-                <input
-                  ref={fileRef}
-                  type="file"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  className="hidden"
-                  onChange={handleAvatarChange}
-                />
+                <input ref={fileRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" className="hidden" onChange={handleAvatarChange} />
               </div>
 
               <div>
-                <h2 className="font-bold text-lg leading-tight" style={{ color: 'var(--text)' }}>
+                <h2 className="font-bold text-[20px] leading-tight" style={{ color: 'var(--text)' }}>
                   {user.nombre}
                 </h2>
-                <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{user.email}</p>
-                {isAdmin && (
-                  <span
-                    className="badge mt-2"
-                    style={{ background: ADMIN_STYLE.bg, color: ADMIN_STYLE.color }}
-                  >
-                    <Shield size={11} />
-                    Administrador
-                  </span>
-                )}
+                <p className="text-[13px] mt-1" style={{ color: 'var(--text-muted)' }}>{user.email}</p>
               </div>
 
               {user.descripcion && (
                 <p
-                  className="text-sm text-left w-full border-t pt-3"
+                  className="text-sm text-left w-full border-t pt-4"
                   style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}
                 >
                   {user.descripcion}
@@ -229,39 +190,6 @@ export default function ProfilePage() {
             </div>
           </SectionCard>
 
-          {/* Task stats */}
-          <SectionCard title="Mis estadísticas" icon={Target}>
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {[
-                { label: 'Asignadas', value: stats.total, color: 'var(--text)' },
-                { label: 'Finalizadas', value: stats.done, color: '#3fb950' },
-                { label: 'En progreso', value: stats.inProgress, color: '#5a9cf8' },
-                { label: 'Pendientes', value: stats.pending, color: '#8892aa' },
-              ].map(({ label, value, color }) => (
-                <div
-                  key={label}
-                  className="rounded-xl p-3 text-center"
-                  style={{ background: 'var(--bg-secondary)' }}
-                >
-                  <p className="text-2xl font-bold" style={{ color }}>{value}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{label}</p>
-                </div>
-              ))}
-            </div>
-
-            {stats.total > 0 && (
-              <div style={{ height: 180 }}>
-                <Doughnut data={doughnutData} options={doughnutOptions} />
-              </div>
-            )}
-
-            {stats.total === 0 && (
-              <p className="text-sm text-center py-4" style={{ color: 'var(--text-muted)' }}>
-                Sin tareas asignadas
-              </p>
-            )}
-          </SectionCard>
-
           {/* Teams */}
           {equipos.length > 0 && (
             <SectionCard title="Mis equipos" icon={Users}>
@@ -269,20 +197,22 @@ export default function ProfilePage() {
                 {equipos.map((eq) => (
                   <div
                     key={eq.id}
-                    className="flex items-center gap-3 p-3 rounded-xl"
+                    onClick={() => navigate(`/equipos?open=${eq.id}`)}
+                    className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer transition-colors hover:brightness-110"
                     style={{ background: 'var(--bg-secondary)' }}
+                    title={`Abrir ${eq.nombre}`}
                   >
                     <div
-                      className="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0"
                       style={{ background: 'var(--primary)' }}
                     >
                       {eq.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate" style={{ color: 'var(--text)' }}>
+                      <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--text)' }}>
                         {eq.nombre}
                       </p>
-                      <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>
                         {eq.usuarios?.length ?? 0} miembro{eq.usuarios?.length !== 1 ? 's' : ''}
                         {eq.proyectos?.length > 0 && ` · ${eq.proyectos.length} proyecto${eq.proyectos.length !== 1 ? 's' : ''}`}
                       </p>
@@ -295,11 +225,9 @@ export default function ProfilePage() {
         </div>
 
         {/* ── Right column ── */}
-        <div className="lg:col-span-2 space-y-5">
-
-          {/* Edit profile form */}
+        <div className="lg:col-span-2">
           <SectionCard title="Información personal" icon={User}>
-            <form onSubmit={handleSave} className="space-y-4">
+            <form onSubmit={handleSave} className="space-y-5">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
                   Nombre completo
@@ -326,7 +254,7 @@ export default function ProfilePage() {
                   className={`${inp} opacity-50 cursor-not-allowed`}
                   style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
-                <p className="text-xs mt-1" style={{ color: 'var(--text-faint)' }}>
+                <p className="text-xs mt-1.5" style={{ color: 'var(--text-faint)' }}>
                   El email no se puede modificar.
                 </p>
               </div>
@@ -339,7 +267,7 @@ export default function ProfilePage() {
                   value={form.descripcion}
                   onChange={setField('descripcion')}
                   placeholder="Cuéntanos algo sobre ti..."
-                  rows={4}
+                  rows={5}
                   className={`${inp} resize-none`}
                   style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
                 />
@@ -355,77 +283,61 @@ export default function ProfilePage() {
                 {loading ? 'Guardando...' : 'Guardar cambios'}
               </button>
             </form>
-          </SectionCard>
 
-          {/* My tasks preview */}
-          {myTasks.length > 0 && (
-            <SectionCard title="Mis tareas recientes" icon={CheckSquare}>
-              <div className="space-y-2">
-                {myTasks.slice(0, 6).map((t) => {
-                  const colors = {
-                    PENDIENTE: '#8892aa', EN_PROGRESO: '#5a9cf8',
-                    EN_REVISION: '#d29922', FINALIZADO: '#3fb950',
-                  };
-                  const labels = {
-                    PENDIENTE: 'Pendiente', EN_PROGRESO: 'En progreso',
-                    EN_REVISION: 'En revisión', FINALIZADO: 'Finalizado',
-                  };
-                  const c = colors[t.estado] ?? '#8892aa';
-                  return (
-                    <div
-                      key={t.id}
-                      className="flex items-center gap-3 p-3 rounded-xl"
-                      style={{ background: 'var(--bg-secondary)' }}
+            {/* Divider */}
+            <div className="my-7" style={{ borderTop: '1px solid var(--border)' }} />
+
+            {/* Password section */}
+            <h2 className="font-semibold text-[15px] flex items-center gap-2.5 mb-6" style={{ color: 'var(--text)' }}>
+              <Lock size={17} style={{ color: 'var(--primary)' }} />
+              Cambiar contraseña
+            </h2>
+
+            <form onSubmit={handleChangePassword} className="space-y-4">
+              {[
+                { field: 'current', label: 'Contraseña actual' },
+                { field: 'next',    label: 'Nueva contraseña' },
+                { field: 'confirm', label: 'Confirmar nueva contraseña' },
+              ].map(({ field, label }) => (
+                <div key={field}>
+                  <label className="block text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'var(--text-muted)' }}>
+                    {label}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPw[field] ? 'text' : 'password'}
+                      value={pwForm[field]}
+                      onChange={setPwField(field)}
+                      required
+                      placeholder="••••••••"
+                      className={`${inp} pr-10`}
+                      style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => toggleShow(field)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      style={{ color: 'var(--text-muted)' }}
                     >
-                      <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: c }} />
-                      <span className="flex-1 text-sm truncate" style={{ color: 'var(--text)' }}>{t.titulo}</span>
-                      <span
-                        className="text-xs px-2 py-1 rounded-full font-medium flex-shrink-0"
-                        style={{ background: `${c}20`, color: c }}
-                      >
-                        {labels[t.estado]}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </SectionCard>
-          )}
-
-          {/* Activity feed */}
-          <SectionCard title="Mi actividad reciente" icon={Clock}>
-            {historial.length === 0 ? (
-              <p className="text-sm text-center py-6" style={{ color: 'var(--text-muted)' }}>
-                Sin actividad registrada
-              </p>
-            ) : (
-              <div className="space-y-1">
-                {historial.map((h) => (
-                  <div
-                    key={h.id}
-                    className="flex gap-3 items-start p-3 rounded-xl transition-colors hover:bg-[#F4F5F7]"
-                  >
-                    <span className="text-xl flex-shrink-0 mt-0.5">{ACCION_ICON[h.accion] || '📌'}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm" style={{ color: 'var(--text)' }}>
-                        <span className="font-medium capitalize">{h.accion.toLowerCase()}</span>{' '}
-                        <span style={{ color: 'var(--text-muted)' }}>
-                          {ENTIDAD_LABEL[h.entidadTipo] || h.entidadTipo.toLowerCase()}
-                        </span>
-                        {h.detalles && (
-                          <span style={{ color: 'var(--text-muted)' }}> — {h.detalles}</span>
-                        )}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--text-faint)' }}>
-                        {formatDistanceToNow(new Date(h.fecha), { addSuffix: true, locale: es })}
-                      </p>
-                    </div>
+                      {showPw[field] ? <EyeOff size={15} /> : <Eye size={15} />}
+                    </button>
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+
+              <button
+                type="submit"
+                disabled={pwLoading}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+                style={{ background: 'var(--primary)' }}
+              >
+                <Shield size={15} />
+                {pwLoading ? 'Actualizando...' : 'Cambiar contraseña'}
+              </button>
+            </form>
           </SectionCard>
         </div>
+
       </div>
     </div>
   );

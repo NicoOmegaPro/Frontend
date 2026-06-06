@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Users, Plus, Crown, User as UserIcon,
   Mail, ChevronDown, ChevronUp, Trash2, X,
@@ -7,6 +7,7 @@ import {
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import Pagination, { useClientPagination } from '../common/Pagination';
 
 const API_BASE = 'http://localhost:3000';
 
@@ -24,8 +25,8 @@ function RolBadge({ rol }) {
   const m = ROL_META[rol] || ROL_META.MIEMBRO;
   const Icon = m.icon;
   return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: m.bg, color: m.color }}>
-      <Icon size={11} />
+    <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1 rounded-full" style={{ background: m.bg, color: m.color }}>
+      <Icon size={12} />
       {m.label}
     </span>
   );
@@ -33,10 +34,10 @@ function RolBadge({ rol }) {
 
 function Avatar({ user }) {
   if (user?.imagenPerfil) {
-    return <img src={`${API_BASE}${user.imagenPerfil}`} alt={user.nombre} className="w-9 h-9 rounded-full object-cover flex-shrink-0" />;
+    return <img src={`${API_BASE}${user.imagenPerfil}`} alt={user.nombre} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
   }
   return (
-    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0" style={{ background: 'var(--primary)' }}>
+    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0" style={{ background: 'var(--primary)' }}>
       {user?.nombre?.charAt(0).toUpperCase()}
     </div>
   );
@@ -112,15 +113,23 @@ function CreateEquipoModal({ onClose, onCreated }) {
 }
 
 /* ─── Panel de un equipo ─── */
-function EquipoCard({ equipo, currentUserId, onUpdate }) {
+function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const cardRef = useRef(null);
   const [expanded, setExpanded] = useState(false);
+
+  useEffect(() => {
+    if (!autoOpen) return;
+    setExpanded(true);
+    setTimeout(() => cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+  }, [autoOpen]);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviting, setInviting] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
 
   const isJefe = equipo.myRol === 'JEFE_EQUIPO';
+  const membersPg = useClientPagination(equipo.usuarios || [], 6);
 
   const handleInvitar = async (e) => {
     e.preventDefault();
@@ -161,24 +170,24 @@ function EquipoCard({ equipo, currentUserId, onUpdate }) {
   };
 
   return (
-    <div className="rounded-2xl border overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+    <div ref={cardRef} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
       {/* Header del equipo */}
-      <div className="p-5">
+      <div className="p-6">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-white text-xl font-bold flex-shrink-0" style={{ background: 'var(--primary)' }}>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0" style={{ background: 'var(--primary)' }}>
               {equipo.nombre.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h3 className="font-bold text-base" style={{ color: 'var(--text)' }}>{equipo.nombre}</h3>
+              <h3 className="font-bold text-[17px]" style={{ color: 'var(--text)' }}>{equipo.nombre}</h3>
               {equipo.descripcion && (
-                <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>{equipo.descripcion}</p>
+                <p className="text-[14px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{equipo.descripcion}</p>
               )}
-              <div className="flex items-center gap-3 mt-1.5">
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              <div className="flex items-center gap-3 mt-2">
+                <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
                   <strong style={{ color: 'var(--text)' }}>{equipo.usuarios?.length ?? 0}</strong> miembro{equipo.usuarios?.length !== 1 ? 's' : ''}
                 </span>
-                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-[13px]" style={{ color: 'var(--text-muted)' }}>
                   <strong style={{ color: 'var(--text)' }}>{equipo.proyectos?.length ?? 0}</strong> proyecto{equipo.proyectos?.length !== 1 ? 's' : ''}
                 </span>
                 <RolBadge rol={equipo.myRol} />
@@ -190,16 +199,16 @@ function EquipoCard({ equipo, currentUserId, onUpdate }) {
             {isJefe && (
               <button
                 onClick={() => setShowInvite(!showInvite)}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm font-semibold text-white hover:opacity-90"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-[14px] font-semibold text-white hover:opacity-90"
                 style={{ background: 'var(--primary)' }}
               >
-                <Plus size={14} /> Invitar
+                <Plus size={15} /> Invitar
               </button>
             )}
             <button
               onClick={() => setExpanded(!expanded)}
-              className="p-2 rounded-xl hover:bg-[#F4F5F7]"
-              style={{ color: 'var(--text-muted)' }}
+              className="p-2.5 rounded-xl transition-colors"
+              style={{ color: 'var(--text-muted)', background: 'var(--bg-secondary)' }}
             >
               {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </button>
@@ -259,27 +268,27 @@ function EquipoCard({ equipo, currentUserId, onUpdate }) {
       {/* Lista de miembros (expanded) */}
       {expanded && (
         <div className="border-t" style={{ borderColor: 'var(--border)' }}>
-          <div className="p-5 space-y-2">
-            <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>
+          <div className="p-6 space-y-2">
+            <p className="text-[12px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--text-muted)' }}>
               Miembros ({equipo.usuarios?.length ?? 0})
             </p>
-            {equipo.usuarios?.map((m) => {
+            {membersPg.pageItems.map((m) => {
               const isMe = m.usuarioId === currentUserId;
               const isJefeTarget = m.rol === 'JEFE_EQUIPO';
               return (
                 <div
                   key={m.usuarioId}
                   onClick={() => navigate(isMe ? '/profile' : `/users/${m.usuarioId}`)}
-                  className="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors hover:brightness-110"
+                  className="flex items-center gap-3 p-3.5 rounded-xl cursor-pointer transition-colors hover:brightness-110"
                   style={{ background: 'var(--bg-secondary)' }}
                   title={isMe ? 'Ver mi perfil' : `Ver perfil de ${m.usuario?.nombre}`}
                 >
                   <Avatar user={m.usuario} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold hover:underline" style={{ color: 'var(--text)' }}>
-                      {m.usuario?.nombre} {isMe && <span className="text-xs font-normal" style={{ color: 'var(--text-muted)' }}>(tú)</span>}
+                    <p className="text-[14px] font-semibold hover:underline" style={{ color: 'var(--text)' }}>
+                      {m.usuario?.nombre} {isMe && <span className="text-[12px] font-normal" style={{ color: 'var(--text-muted)' }}>(tú)</span>}
                     </p>
-                    <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{m.usuario?.email}</p>
+                    <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{m.usuario?.email}</p>
                   </div>
 
                   <RolBadge rol={m.rol} />
@@ -298,6 +307,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate }) {
                 </div>
               );
             })}
+            <Pagination page={membersPg.page} pages={membersPg.pages} onChange={membersPg.setPage} />
           </div>
 
           {/* Proyectos del equipo */}
@@ -345,15 +355,23 @@ function EquipoCard({ equipo, currentUserId, onUpdate }) {
    ════════════════════════════════════════ */
 export default function EquiposPage() {
   const { user } = useAuth();
+  const location = useLocation();
+  const openId = parseInt(new URLSearchParams(location.search).get('open')) || null;
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
+  const equiposPg = useClientPagination(equipos, 5);
 
   const load = async () => {
     setLoading(true);
     try {
       const data = await api.getEquipos();
-      setEquipos(Array.isArray(data) ? data : []);
+      const list = Array.isArray(data) ? data : [];
+      setEquipos(list);
+      if (openId) {
+        const idx = list.findIndex((e) => e.id === openId);
+        if (idx >= 0) equiposPg.setPage(Math.floor(idx / 5) + 1);
+      }
     } catch {
       setEquipos([]);
     } finally {
@@ -376,8 +394,8 @@ export default function EquiposPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold" style={{ color: 'var(--text)' }}>Mis Equipos</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
+          <h1 className="text-[28px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Mis Equipos</h1>
+          <p className="text-[14px] mt-1" style={{ color: 'var(--text-muted)' }}>
             {equipos.length === 0
               ? 'Crea tu primer equipo e invita a compañeros.'
               : `Eres miembro de ${equipos.length} equipo${equipos.length !== 1 ? 's' : ''}.`}
@@ -402,16 +420,20 @@ export default function EquiposPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {equipos.map((eq) => (
-            <EquipoCard
-              key={eq.id}
-              equipo={eq}
-              currentUserId={user?.id}
-              onUpdate={load}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-4">
+            {equiposPg.pageItems.map((eq) => (
+              <EquipoCard
+                key={eq.id}
+                equipo={eq}
+                currentUserId={user?.id}
+                onUpdate={load}
+                autoOpen={eq.id === openId}
+              />
+            ))}
+          </div>
+          <Pagination page={equiposPg.page} pages={equiposPg.pages} onChange={equiposPg.setPage} total={equipos.length} label="equipos" />
+        </>
       )}
 
       {showCreate && (

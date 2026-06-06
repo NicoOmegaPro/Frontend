@@ -1,12 +1,16 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-const ThemeContext = createContext({ dark: false, toggle: () => {} });
+const ThemeContext = createContext({ dark: true, toggle: () => {} });
 
 export function ThemeProvider({ children }) {
-  const [dark, setDark] = useState(() => localStorage.getItem('kanban-theme') === 'dark');
+  // Dark is the default identity. Only switch to light if the user opted in.
+  const [dark, setDark] = useState(() => localStorage.getItem('kanban-theme') !== 'light');
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', dark);
+    const root = document.documentElement;
+    root.classList.toggle('dark', dark);
+    root.classList.toggle('light', !dark);
+    root.style.colorScheme = dark ? 'dark' : 'light';
     localStorage.setItem('kanban-theme', dark ? 'dark' : 'light');
   }, [dark]);
 

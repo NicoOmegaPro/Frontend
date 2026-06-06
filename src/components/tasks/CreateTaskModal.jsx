@@ -17,25 +17,15 @@ export default function CreateTaskModal({ projectId, members, defaultStatus = 'P
     prioridad: 'MEDIA',
     asignadoAId: '',
     sprintId: '',
+    fechaVencimiento: '',
   });
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Si nos pasan los miembros del proyecto, los usamos directamente (sin pedir TODOS los usuarios).
-    if (Array.isArray(members) && members.length > 0) {
-      setUsers(members);
-      api.getSprints()
-        .then((s) => setSprints(Array.isArray(s) ? s.filter((sp) => sp.proyectoId === projectId) : []))
-        .catch(() => setSprints([]));
-      return;
-    }
-    Promise.all([
-      api.getUsers().catch(() => []),
-      api.getSprints().catch(() => []),
-    ]).then(([u, s]) => {
-      setUsers(Array.isArray(u) ? u : []);
-      setSprints(Array.isArray(s) ? s.filter((sp) => sp.proyectoId === projectId) : []);
-    });
+    api.getSprints(projectId)
+      .then((s) => setSprints(Array.isArray(s) ? s : []))
+      .catch(() => setSprints([]));
+    setUsers(Array.isArray(members) ? members : []);
   }, [projectId, members]);
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -53,6 +43,7 @@ export default function CreateTaskModal({ projectId, members, defaultStatus = 'P
         proyectoId: projectId,
         asignadoAId: form.asignadoAId ? parseInt(form.asignadoAId) : undefined,
         sprintId: form.sprintId ? parseInt(form.sprintId) : undefined,
+        fechaVencimiento: form.fechaVencimiento || undefined,
       });
       addToast('Tarea creada correctamente', 'success');
       onCreated(created);
@@ -162,6 +153,13 @@ export default function CreateTaskModal({ projectId, members, defaultStatus = 'P
                 ))}
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">
+              Fecha de vencimiento
+            </label>
+            <input type="date" value={form.fechaVencimiento} onChange={set('fechaVencimiento')} className={inp} />
           </div>
 
           <div className="flex gap-3 pt-2">

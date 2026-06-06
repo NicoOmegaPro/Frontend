@@ -22,6 +22,7 @@ export default function KanbanBoard({
   myTeamRole,
 }) {
   const [activeTask, setActiveTask] = useState(null);
+  const [justFinishedId, setJustFinishedId] = useState(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
@@ -57,6 +58,11 @@ export default function KanbanBoard({
     // TRABAJADOR no puede arrastrar a FINALIZADO
     if (targetStatus === 'FINALIZADO' && myTeamRole === 'TRABAJADOR') return;
 
+    if (targetStatus === 'FINALIZADO') {
+      setJustFinishedId(task.id);
+      setTimeout(() => setJustFinishedId(null), 2400);
+    }
+
     onStatusChange(task.id, targetStatus);
   };
 
@@ -80,6 +86,7 @@ export default function KanbanBoard({
             comentariosByTask={comentariosByTask}
             onTaskClick={onTaskClick}
             onAddTask={() => onAddTask(status)}
+            justFinishedId={justFinishedId}
           />
         ))}
       </div>

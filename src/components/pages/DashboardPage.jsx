@@ -16,13 +16,16 @@ import {
   BarElement,
 } from 'chart.js';
 
+import { roundLegend, pointerOnHover, CHART_GRID, CHART_TICK } from '../../utils/chartConfig';
+import Pagination, { useClientPagination } from '../common/Pagination';
+
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const ESTADO_COLOR = {
-  PENDIENTE: '#6B778C',
-  EN_PROGRESO: '#0052CC',
-  EN_REVISION: '#FF991F',
-  FINALIZADO: '#00875A',
+  PENDIENTE: '#8B8B94',
+  EN_PROGRESO: '#6E76F1',
+  EN_REVISION: '#E0A82E',
+  FINALIZADO: '#3FB950',
 };
 
 const ESTADO_LABEL = {
@@ -41,29 +44,32 @@ const ACCION_ICON = {
 
 function StatCard({ icon: Icon, label, value, sub, color, items, onItemClick }) {
   return (
-    <div className="bg-white rounded-2xl p-6 border border-[#DFE1E6] flex flex-col gap-3 hover:shadow-md transition-shadow">
+    <div
+      className="rounded-2xl p-6 border flex flex-col gap-4 hover:shadow-xl transition-all"
+      style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+    >
       <div className="flex items-start gap-4">
         <div
-          className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: `${color}1f` }}
+          className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+          style={{ background: `${color}1a` }}
         >
-          <Icon size={24} style={{ color }} />
+          <Icon size={28} style={{ color }} />
         </div>
         <div>
-          <p className="text-3xl font-extrabold text-[#172B4D] leading-tight">{value}</p>
-          <p className="text-[15px] font-semibold text-[#172B4D]">{label}</p>
-          {sub && <p className="text-sm text-[#6B778C] mt-0.5">{sub}</p>}
+          <p className="text-[44px] font-extrabold leading-none" style={{ color: 'var(--text)' }}>{value}</p>
+          <p className="text-[15px] font-semibold mt-1.5" style={{ color: 'var(--text)' }}>{label}</p>
+          {sub && <p className="text-[13px] mt-0.5" style={{ color: 'var(--text-muted)' }}>{sub}</p>}
         </div>
       </div>
 
-      {/* Lista de tareas reales en este estado, para que se entienda de un vistazo */}
       {items && items.length > 0 && (
-        <ul className="space-y-1.5 border-t border-[#F4F5F7] pt-3">
+        <ul className="space-y-2 border-t pt-4" style={{ borderColor: 'var(--border)' }}>
           {items.slice(0, 3).map((t) => (
             <li
               key={t.id}
               onClick={() => onItemClick?.(t)}
-              className="flex items-center gap-2 text-sm text-[#172B4D] truncate cursor-pointer hover:text-[#0052CC]"
+              className="flex items-center gap-2 text-[13px] truncate cursor-pointer transition-opacity hover:opacity-70"
+              style={{ color: 'var(--text-muted)' }}
               title={t.titulo}
             >
               <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: color }} />
@@ -71,7 +77,7 @@ function StatCard({ icon: Icon, label, value, sub, color, items, onItemClick }) 
             </li>
           ))}
           {items.length > 3 && (
-            <li className="text-xs text-[#6B778C] pl-3.5">+{items.length - 3} más</li>
+            <li className="text-xs pl-3.5" style={{ color: 'var(--text-faint)' }}>+{items.length - 3} más</li>
           )}
         </ul>
       )}
@@ -91,11 +97,11 @@ export default function DashboardPage() {
     Promise.all([
       api.getProjects().catch(() => []),
       api.getTasks().catch(() => []),
-      api.getHistorial().catch(() => []),
+      api.getHistorial({ limit: 60 }).catch(() => ({ items: [] })),
     ]).then(([p, t, h]) => {
       setProjects(Array.isArray(p) ? p : []);
       setTasks(Array.isArray(t) ? t : []);
-      setHistorial(Array.isArray(h) ? h.slice(0, 15) : []);
+      setHistorial(Array.isArray(h?.items) ? h.items : []);
     }).finally(() => setLoading(false));
   }, []);
 
@@ -112,11 +118,15 @@ export default function DashboardPage() {
 
   const projectsSlice = projects.slice(0, 6);
 
+  const myTasksPg = useClientPagination(myTasks, 6);
+  const activityPg = useClientPagination(historial, 6);
+  const projectsPg = useClientPagination(projects, 6);
+
   const taskDoughnutData = {
     labels: ['Pendiente', 'En progreso', 'En revisión', 'Finalizado'],
     datasets: [{
       data: [tasksByStatus.PENDIENTE, tasksByStatus.EN_PROGRESO, tasksByStatus.EN_REVISION, tasksByStatus.FINALIZADO],
-      backgroundColor: ['#6B778C', '#0052CC', '#FF991F', '#00875A'],
+      backgroundColor: ['#8B8B94', '#6E76F1', '#E0A82E', '#3FB950'],
       borderWidth: 0,
       hoverOffset: 6,
     }],
@@ -125,12 +135,12 @@ export default function DashboardPage() {
   const doughnutOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '68%',
+    cutout: '62%',
+    onHover: pointerOnHover,
+    layout: { padding: { top: 8, bottom: 4, left: 10, right: 10 } },
+    radius: '82%',
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { font: { size: 13 }, padding: 14, usePointStyle: true, pointStyleWidth: 9, color: '#5E6C84' },
-      },
+      legend: roundLegend('#c9ccd4', 14),
       tooltip: {
         callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} tarea${ctx.raw !== 1 ? 's' : ''}` },
       },
@@ -145,8 +155,8 @@ export default function DashboardPage() {
         const pt = tasks.filter((t) => t.proyectoId === p.id);
         return pt.length ? Math.round((pt.filter((t) => t.estado === 'FINALIZADO').length / pt.length) * 100) : 0;
       }),
-      backgroundColor: '#0052CC',
-      borderRadius: 4,
+      backgroundColor: '#6E76F1',
+      borderRadius: 6,
       barThickness: 16,
     }],
   };
@@ -159,11 +169,12 @@ export default function DashboardPage() {
       x: {
         min: 0,
         max: 100,
-        ticks: { font: { size: 10 }, callback: (v) => `${v}%` },
-        grid: { color: '#F4F5F7' },
+        ticks: { font: { size: 11 }, callback: (v) => `${v}%`, color: CHART_TICK },
+        grid: { color: CHART_GRID },
       },
-      y: { ticks: { font: { size: 10 } }, grid: { display: false } },
+      y: { ticks: { font: { size: 11 }, color: CHART_TICK }, grid: { display: false } },
     },
+    onHover: pointerOnHover,
     plugins: {
       legend: { display: false },
       tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw}% completado` } },
@@ -173,47 +184,47 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="w-8 h-8 border-4 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+        <div className="w-9 h-9 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
+    <div className="space-y-8">
       {/* Welcome */}
       <div>
-        <h1 className="text-3xl font-extrabold text-[#172B4D]">
-          ¡Hola, {user?.nombre?.split(' ')[0]}! 👋
+        <h1 className="text-[32px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>
+          Hola, {user?.nombre?.split(' ')[0]}
         </h1>
-        <p className="text-[#6B778C] text-base mt-1.5">
-          Aquí tienes un resumen de la actividad del equipo.
+        <p className="text-[15px] mt-1.5" style={{ color: 'var(--text-muted)' }}>
+          Tu actividad y la de tu equipo, en un vistazo.
         </p>
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           icon={FolderKanban}
           label="Proyectos activos"
           value={activeProjects}
-          sub={`${projects.length} totales`}
-          color="#0052CC"
+          sub={null}
+          color="#6E76F1"
         />
         <StatCard
           icon={Clock}
-          label="En progreso"
+          label="Tareas en progreso"
           value={tasksByStatus.EN_PROGRESO}
-          sub={`${tasksByStatus.PENDIENTE} pendientes`}
-          color="#FF991F"
+          sub={null}
+          color="#E0A82E"
           items={enProgresoTasks}
           onItemClick={(t) => navigate(`/projects/${t.proyectoId}`)}
         />
         <StatCard
           icon={CheckSquare}
-          label="Finalizadas"
+          label="Tareas finalizadas"
           value={tasksByStatus.FINALIZADO}
-          sub={`${tasks.length} tareas totales`}
-          color="#00875A"
+          sub={`${tasks.length} tareas en total`}
+          color="#3FB950"
           items={finalizadasTasks}
           onItemClick={(t) => navigate(`/projects/${t.proyectoId}`)}
         />
@@ -221,112 +232,126 @@ export default function DashboardPage() {
           icon={AlertCircle}
           label="Mis tareas"
           value={myTasks.length}
-          sub="asignadas a mí"
-          color="#DE350B"
+          sub="asignadas a ti"
+          color="#F0556B"
         />
       </div>
 
+      {/* Charts + lists row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Task status doughnut */}
-        <div className="bg-white rounded-xl border border-[#DFE1E6] p-5 flex flex-col">
+        {/* Doughnut */}
+        <div className="rounded-2xl border p-4 flex flex-col" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-2 mb-3">
-            <TrendingUp size={16} className="text-[#0052CC]" />
-            <h2 className="font-semibold text-[#172B4D] text-base">Estado de tareas</h2>
+            <TrendingUp size={15} style={{ color: 'var(--primary)' }} />
+            <h2 className="font-semibold text-[14px]" style={{ color: 'var(--text)' }}>Estado de tareas</h2>
           </div>
           {tasks.length === 0 ? (
-            <p className="text-sm text-[#6B778C] text-center py-10">Sin tareas</p>
+            <p className="text-[13px] text-center py-8" style={{ color: 'var(--text-muted)' }}>Sin tareas registradas</p>
           ) : (
-            <div className="flex-1" style={{ height: 250 }}>
+            <div className="flex-1 min-h-0" style={{ minHeight: 220 }}>
               <Doughnut data={taskDoughnutData} options={doughnutOptions} />
             </div>
           )}
         </div>
 
         {/* My tasks */}
-        <div className="bg-white rounded-xl border border-[#DFE1E6] p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="rounded-2xl border p-4" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <CheckSquare size={16} className="text-[#0052CC]" />
-              <h2 className="font-semibold text-[#172B4D] text-base">Mis tareas</h2>
+              <CheckSquare size={15} style={{ color: 'var(--primary)' }} />
+              <h2 className="font-semibold text-[14px]" style={{ color: 'var(--text)' }}>Mis tareas</h2>
             </div>
-            <Link to="/projects" className="text-xs text-[#0052CC] hover:underline">Ver todas</Link>
+            <Link to="/projects" className="text-[12px] font-medium hover:underline" style={{ color: 'var(--primary-hover)' }}>
+              Ver todas
+            </Link>
           </div>
           {myTasks.length === 0 ? (
-            <p className="text-sm text-[#6B778C] text-center py-6">Sin tareas asignadas</p>
+            <p className="text-[13px] text-center py-6" style={{ color: 'var(--text-muted)' }}>
+              No tienes tareas asignadas
+            </p>
           ) : (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {myTasks.slice(0, 8).map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => navigate(`/projects/${t.proyectoId}`)}
-                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-[#F4F5F7] cursor-pointer group"
-                >
-                  <span
-                    className="w-2 h-2 rounded-full flex-shrink-0"
-                    style={{ background: ESTADO_COLOR[t.estado] }}
-                  />
-                  <span className="text-sm text-[#172B4D] truncate flex-1 group-hover:text-[#0052CC]">
-                    {t.titulo}
-                  </span>
-                  <span
-                    className="text-[10px] px-1.5 py-0.5 rounded font-medium flex-shrink-0"
-                    style={{ background: `${ESTADO_COLOR[t.estado]}20`, color: ESTADO_COLOR[t.estado] }}
+            <>
+              <div className="space-y-1.5">
+                {myTasksPg.pageItems.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => navigate(`/projects/${t.proyectoId}`)}
+                    className="flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors group"
+                    style={{ background: 'var(--bg-secondary)' }}
                   >
-                    {ESTADO_LABEL[t.estado]}
-                  </span>
-                </div>
-              ))}
-            </div>
+                    <span
+                      className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                      style={{ background: ESTADO_COLOR[t.estado] }}
+                    />
+                    <span className="text-[13px] truncate flex-1 group-hover:underline" style={{ color: 'var(--text)' }}>
+                      {t.titulo}
+                    </span>
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded-full font-medium flex-shrink-0"
+                      style={{ background: `${ESTADO_COLOR[t.estado]}20`, color: ESTADO_COLOR[t.estado] }}
+                    >
+                      {ESTADO_LABEL[t.estado]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <Pagination page={myTasksPg.page} pages={myTasksPg.pages} onChange={myTasksPg.setPage} />
+            </>
           )}
         </div>
 
         {/* Activity feed */}
-        <div className="bg-white rounded-xl border border-[#DFE1E6] p-5">
-          <div className="flex items-center gap-2 mb-4">
-            <Activity size={16} className="text-[#0052CC]" />
-            <h2 className="font-semibold text-[#172B4D] text-base">Actividad reciente</h2>
+        <div className="rounded-2xl border p-4 flex flex-col" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Activity size={15} style={{ color: 'var(--primary)' }} />
+            <h2 className="font-semibold text-[14px]" style={{ color: 'var(--text)' }}>Actividad reciente</h2>
           </div>
           {historial.length === 0 ? (
-            <p className="text-sm text-[#6B778C] text-center py-6">Sin actividad</p>
+            <p className="text-[13px] text-center py-6" style={{ color: 'var(--text-muted)' }}>Sin actividad reciente</p>
           ) : (
-            <div className="space-y-3 max-h-48 overflow-y-auto">
-              {historial.map((h) => (
-                <div key={h.id} className="flex gap-2.5 items-start">
-                  <span className="text-base flex-shrink-0 mt-0.5">{ACCION_ICON[h.accion] || '📌'}</span>
-                  <div className="min-w-0">
-                    <p className="text-xs text-[#172B4D]">
-                      <span className="font-semibold">{h.usuario?.nombre || 'Usuario'}</span>{' '}
-                      {h.detalles || `${h.accion.toLowerCase()} ${h.entidadTipo.toLowerCase()}`}
-                    </p>
-                    <p className="text-[10px] text-[#6B778C] mt-0.5">
-                      {formatDistanceToNow(new Date(h.fecha), { addSuffix: true, locale: es })}
-                    </p>
+            <>
+              <div className="flex-1 space-y-2">
+                {activityPg.pageItems.map((h) => (
+                  <div key={h.id} className="flex gap-2 items-start">
+                    <span className="text-[14px] flex-shrink-0 mt-0.5">{ACCION_ICON[h.accion] || '📌'}</span>
+                    <div className="min-w-0">
+                      <p className="text-[12px]" style={{ color: 'var(--text)' }}>
+                        <span className="font-semibold">{h.usuario?.nombre || 'Usuario'}</span>{' '}
+                        {h.detalles || `${h.accion.toLowerCase()} ${h.entidadTipo.toLowerCase()}`}
+                      </p>
+                      <p className="text-[10px] mt-0.5" style={{ color: 'var(--text-faint)' }}>
+                        {formatDistanceToNow(new Date(h.fecha), { addSuffix: true, locale: es })}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+              <Pagination page={activityPg.page} pages={activityPg.pages} onChange={activityPg.setPage} />
+            </>
           )}
         </div>
       </div>
 
       {/* Recent projects */}
       {projects.length > 0 && (
-        <div className="bg-white rounded-xl border border-[#DFE1E6] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FolderKanban size={16} className="text-[#0052CC]" />
-              <h2 className="font-semibold text-[#172B4D] text-base">Proyectos recientes</h2>
+        <div className="rounded-2xl border p-6" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+          <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center gap-2.5">
+              <FolderKanban size={18} style={{ color: 'var(--primary)' }} />
+              <h2 className="font-semibold text-[16px]" style={{ color: 'var(--text)' }}>Proyectos</h2>
             </div>
-            <Link to="/projects" className="text-xs text-[#0052CC] hover:underline">Ver todos</Link>
+            <Link to="/projects" className="text-[13px] font-medium hover:underline" style={{ color: 'var(--primary-hover)' }}>
+              Ver todos
+            </Link>
           </div>
           {projectsSlice.length > 1 && (
-            <div className="mb-5" style={{ height: projectsSlice.length * 34 + 10 }}>
+            <div className="mb-6" style={{ height: projectsSlice.length * 36 + 10 }}>
               <Bar data={projectBarData} options={projectBarOptions} />
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {projects.slice(0, 6).map((p) => {
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {projectsPg.pageItems.map((p) => {
               const projectTasks = tasks.filter((t) => t.proyectoId === p.id);
               const done = projectTasks.filter((t) => t.estado === 'FINALIZADO').length;
               const pct = projectTasks.length ? Math.round((done / projectTasks.length) * 100) : 0;
@@ -334,23 +359,27 @@ export default function DashboardPage() {
                 <div
                   key={p.id}
                   onClick={() => navigate(`/projects/${p.id}`)}
-                  className="p-4 rounded-lg border border-[#DFE1E6] hover:border-[#0052CC] cursor-pointer transition-colors group"
+                  className="p-5 rounded-xl border cursor-pointer transition-all group hover:shadow-md"
+                  style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
                 >
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="w-7 h-7 rounded bg-[#0052CC] flex items-center justify-center text-white text-xs font-bold">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span
+                      className="w-9 h-9 rounded-lg flex items-center justify-center text-white text-sm font-bold flex-shrink-0"
+                      style={{ background: 'var(--primary)' }}
+                    >
                       {p.nombre.charAt(0).toUpperCase()}
                     </span>
-                    <span className="font-semibold text-sm text-[#172B4D] group-hover:text-[#0052CC] truncate">
+                    <span className="font-semibold text-[14px] truncate group-hover:underline" style={{ color: 'var(--text)' }}>
                       {p.nombre}
                     </span>
                   </div>
-                  <p className="text-xs text-[#6B778C] mb-3 line-clamp-2">
+                  <p className="text-[12px] mb-4 line-clamp-2" style={{ color: 'var(--text-muted)' }}>
                     {p.descripcion || 'Sin descripción'}
                   </p>
                   <div className="progress-bar">
                     <div className="progress-bar-fill" style={{ width: `${pct}%` }} />
                   </div>
-                  <div className="flex justify-between text-[10px] text-[#6B778C] mt-1.5">
+                  <div className="flex justify-between text-[11px] mt-2" style={{ color: 'var(--text-faint)' }}>
                     <span>{projectTasks.length} tareas</span>
                     <span>{pct}% completado</span>
                   </div>
@@ -358,6 +387,7 @@ export default function DashboardPage() {
               );
             })}
           </div>
+          <Pagination page={projectsPg.page} pages={projectsPg.pages} onChange={projectsPg.setPage} total={projects.length} label="proyectos" />
         </div>
       )}
     </div>

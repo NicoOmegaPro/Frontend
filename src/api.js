@@ -8,6 +8,13 @@ function getHeaders() {
   };
 }
 
+// Construye un query string a partir de un objeto, ignorando valores vacíos.
+function qs(params) {
+  if (!params) return '';
+  const entries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '');
+  return entries.length ? '?' + new URLSearchParams(Object.fromEntries(entries)).toString() : '';
+}
+
 async function request(method, path, body) {
   const res = await fetch(`${API_BASE}${path}`, {
     method,
@@ -37,26 +44,37 @@ export const api = {
   updateProjectMember: (projectId, userId, rol) => request('PUT', `/projects/${projectId}/miembros/${userId}`, { rol }),
   removeProjectMember: (projectId, userId) => request('DELETE', `/projects/${projectId}/miembros/${userId}`),
 
-  getTasks: () => request('GET', '/tasks'),
+  // filtros opcionales: { proyectoId, estado, prioridad, asignadoAId, sprintId, q, vencidas }
+  getTasks: (filtros) => {
+    const qs = filtros ? '?' + new URLSearchParams(
+      Object.fromEntries(Object.entries(filtros).filter(([, v]) => v !== undefined && v !== null && v !== ''))
+    ).toString() : '';
+    return request('GET', `/tasks${qs}`);
+  },
   getTask: (id) => request('GET', `/tasks/${id}`),
   createTask: (data) => request('POST', '/tasks', data),
   updateTask: (id, data) => request('PUT', `/tasks/${id}`, data),
+  reorderTasks: (ids) => request('PUT', '/tasks/reorder', { ids }),
   deleteTask: (id) => request('DELETE', `/tasks/${id}`),
 
-  getSubtareas: () => request('GET', '/subtareas'),
+  getSubtareas: (tareaId) => request('GET', `/subtareas?tareaId=${tareaId}`),
   createSubtarea: (data) => request('POST', '/subtareas', data),
   updateSubtarea: (id, data) => request('PUT', `/subtareas/${id}`, data),
   deleteSubtarea: (id) => request('DELETE', `/subtareas/${id}`),
 
-  getComentarios: () => request('GET', '/comentarios'),
+  getComentarios: (tareaId) => request('GET', `/comentarios?tareaId=${tareaId}`),
   createComentario: (data) => request('POST', '/comentarios', data),
   deleteComentario: (id) => request('DELETE', `/comentarios/${id}`),
 
-  getUsers: () => request('GET', '/users'),
+  getDashboard: () => request('GET', '/dashboard'),
+
+  // Sin params → array completo (para selects). Con { page } → { items, total, page, pages }.
+  getUsers: (params) => request('GET', `/users${qs(params)}`),
   getUser: (id) => request('GET', `/users/${id}`),
   updateUser: (id, data) => request('PUT', `/users/${id}`, data),
 
-  getEquipos: () => request('GET', '/equipos'),
+  // Sin params → array completo. Con { page } → { items, total, page, pages }.
+  getEquipos: (params) => request('GET', `/equipos${qs(params)}`),
   getEquipo: (id) => request('GET', `/equipos/${id}`),
   createEquipo: (data) => request('POST', '/equipos', data),
   updateEquipo: (id, data) => request('PUT', `/equipos/${id}`, data),
@@ -68,7 +86,7 @@ export const api = {
   // Gestión de miembros
   expulsarMiembro: (equipoId, userId) => request('DELETE', `/equipos/${equipoId}/miembros/${userId}`),
 
-  getSprints: () => request('GET', '/sprints'),
+  getSprints: (proyectoId) => request('GET', `/sprints?proyectoId=${proyectoId}`),
   createSprint: (data) => request('POST', '/sprints', data),
   updateSprint: (id, data) => request('PUT', `/sprints/${id}`, data),
   deleteSprint: (id) => request('DELETE', `/sprints/${id}`),
@@ -77,9 +95,12 @@ export const api = {
   createEtiqueta: (data) => request('POST', '/etiquetas', data),
   deleteEtiqueta: (id) => request('DELETE', `/etiquetas/${id}`),
 
-  getAdjuntos: () => request('GET', '/adjuntos'),
+  getAdjuntos: (tareaId) => request('GET', `/adjuntos?tareaId=${tareaId}`),
   createAdjunto: (data) => request('POST', '/adjuntos', data),
   deleteAdjunto: (id) => request('DELETE', `/adjuntos/${id}`),
+
+  changePassword: (id, currentPassword, newPassword) =>
+    request('POST', `/users/${id}/change-password`, { currentPassword, newPassword }),
 
   uploadAvatar: async (id, file) => {
     const token = localStorage.getItem('token');
@@ -113,11 +134,19 @@ export const api = {
     return res.json();
   },
 
-  getNotificaciones: () => request('GET', '/notificaciones'),
+  // Devuelve { items, total, noLeidas, page, pages }
+  getNotificaciones: (params) => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return request('GET', `/notificaciones${qs}`);
+  },
   updateNotificacion: (id, data) => request('PUT', `/notificaciones/${id}`, data),
+  marcarTodasNotificaciones: () => request('PUT', '/notificaciones/marcar-todas'),
 
-  getHistorial: () => request('GET', '/historial'),
-  createHistorial: (data) => request('POST', '/historial', data),
+  // Devuelve { items, total, page, pages }
+  getHistorial: (params) => {
+    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
+    return request('GET', `/historial${qs}`);
+  },
 
   getRoles: () => request('GET', '/roles'),
 };

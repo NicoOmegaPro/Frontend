@@ -22,13 +22,17 @@ import {
   BarElement,
 } from 'chart.js';
 
+import { roundLegend, pointerOnHover } from '../../utils/chartConfig';
+
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const PROYECTO_ESTADO_STYLE = {
-  ACTIVO:     { bg: '#E3FCEF', color: '#00875A' },
-  COMPLETADO: { bg: '#DEEBFF', color: '#0052CC' },
-  ARCHIVADO:  { bg: '#F4F5F7', color: '#6B778C' },
+  ACTIVO:     { bg: 'rgba(63,185,80,.14)', color: '#4ED164' },
+  COMPLETADO: { bg: 'var(--primary-soft)', color: 'var(--primary-hover)' },
+  ARCHIVADO:  { bg: 'rgba(139,139,148,.14)', color: '#9B9BA5' },
 };
+const CHART_GRID = 'rgba(255,255,255,0.06)';
+const CHART_TICK = '#8B8B94';
 
 function SprintBadge({ sprint }) {
   if (!sprint) return null;
@@ -57,7 +61,6 @@ export default function ProjectDetailPage() {
   const [subtareas, setSubtareas] = useState([]);
   const [comentarios, setComentarios] = useState([]);
   const [sprints, setSprints] = useState([]);
-  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedSprint, setSelectedSprint] = useState('ALL');
@@ -78,22 +81,14 @@ export default function ProjectDetailPage() {
 
   const load = useCallback(async () => {
     try {
-      const [proj, allTasks, allSubs, allComments, allSprints, allUsers] = await Promise.all([
+      // getProject ya incluye sprints y miembros. getTasks({proyectoId}) trae _count para los contadores.
+      const [proj, projTasks] = await Promise.all([
         api.getProject(projectId),
-        api.getTasks().catch(() => []),
-        api.getSubtareas().catch(() => []),
-        api.getComentarios().catch(() => []),
-        api.getSprints().catch(() => []),
-        api.getUsers().catch(() => []),
+        api.getTasks({ proyectoId: projectId }).catch(() => []),
       ]);
       setProject(proj);
-      const projTasks = Array.isArray(allTasks) ? allTasks.filter((t) => t.proyectoId === projectId) : [];
-      setTasks(projTasks);
-      const taskIds = new Set(projTasks.map((t) => t.id));
-      setSubtareas(Array.isArray(allSubs) ? allSubs.filter((s) => taskIds.has(s.tareaId)) : []);
-      setComentarios(Array.isArray(allComments) ? allComments.filter((c) => taskIds.has(c.tareaId)) : []);
-      setSprints(Array.isArray(allSprints) ? allSprints.filter((s) => s.proyectoId === projectId) : []);
-      setUsers(Array.isArray(allUsers) ? allUsers : []);
+      setTasks(Array.isArray(projTasks) ? projTasks : []);
+      setSprints(Array.isArray(proj.sprints) ? proj.sprints : []);
     } catch {
       addToast('Error al cargar el proyecto', 'error');
     } finally {
@@ -173,18 +168,19 @@ export default function ProjectDetailPage() {
         tasks.filter((t) => t.prioridad === 'MEDIA').length,
         tasks.filter((t) => t.prioridad === 'BAJA').length,
       ],
-      backgroundColor: ['#DE350B', '#FF7452', '#FF991F', '#00875A'],
-      borderRadius: 4,
-      barThickness: 18,
+      backgroundColor: ['#F0556B', '#FB923C', '#6E76F1', '#38BDF8'],
+      borderRadius: 8,
+      barThickness: 48,
     }],
   };
 
   const priorityBarOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    onHover: pointerOnHover,
     scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 12 }, color: '#5E6C84' } },
-      y: { ticks: { font: { size: 12 }, stepSize: 1, color: '#5E6C84' }, grid: { color: '#F4F5F7' } },
+      x: { grid: { display: false }, ticks: { font: { size: 12 }, color: CHART_TICK } },
+      y: { ticks: { font: { size: 12 }, stepSize: 1, color: CHART_TICK }, grid: { color: CHART_GRID } },
     },
     plugins: {
       legend: { display: false },
@@ -201,7 +197,7 @@ export default function ProjectDetailPage() {
         tasks.filter((t) => t.estado === 'EN_REVISION').length,
         tasks.filter((t) => t.estado === 'FINALIZADO').length,
       ],
-      backgroundColor: ['#6B778C', '#0052CC', '#FF991F', '#00875A'],
+      backgroundColor: ['#8B8B94', '#6E76F1', '#E0A82E', '#3FB950'],
       borderWidth: 0,
       hoverOffset: 4,
     }],
@@ -210,12 +206,10 @@ export default function ProjectDetailPage() {
   const statusDoughnutOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    cutout: '62%',
+    cutout: '58%',
+    onHover: pointerOnHover,
     plugins: {
-      legend: {
-        position: 'bottom',
-        labels: { font: { size: 13 }, padding: 12, usePointStyle: true, pointStyleWidth: 9, color: '#5E6C84' },
-      },
+      legend: roundLegend(CHART_TICK, 13),
       tooltip: {
         callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}` },
       },
@@ -410,13 +404,13 @@ export default function ProjectDetailPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
             <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por prioridad</p>
-            <div style={{ height: 150 }}>
+            <div style={{ height: 230 }}>
               <Bar data={priorityBarData} options={priorityBarOptions} />
             </div>
           </div>
           <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
             <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por estado</p>
-            <div style={{ height: 150 }}>
+            <div style={{ height: 230 }}>
               <Doughnut data={statusDoughnutData} options={statusDoughnutOptions} />
             </div>
           </div>

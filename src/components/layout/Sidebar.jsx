@@ -1,16 +1,16 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-  LayoutDashboard, FolderKanban, User, LogOut, PanelLeft, Users,
+  LayoutDashboard, FolderKanban, User, LogOut, PanelLeft, Users, Plus,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api';
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/projects',  icon: FolderKanban,    label: 'Proyectos'  },
-  { to: '/equipos',   icon: Users,           label: 'Equipos'    },
-  { to: '/profile',   icon: User,             label: 'Mi Perfil'  },
+  { to: '/projects',  icon: FolderKanban,    label: 'Proyectos' },
+  { to: '/equipos',   icon: Users,           label: 'Equipos'   },
+  { to: '/profile',   icon: User,            label: 'Mi Perfil' },
 ];
 
 const API_BASE = 'http://localhost:3000';
@@ -32,91 +32,84 @@ export default function Sidebar() {
     navigate('/login');
   };
 
-
   return (
     <aside
+      className="flex flex-col h-screen flex-shrink-0"
       style={{
         background: 'var(--sidebar-bg)',
-        width: collapsed ? '64px' : '260px',
-        transition: 'width 0.2s ease',
-        flexShrink: 0,
+        width: collapsed ? '72px' : '256px',
+        borderRight: '1px solid var(--border)',
+        transition: 'width .22s cubic-bezier(.16,1,.3,1)',
       }}
-      className="flex flex-col min-h-screen"
     >
-      {/* Header */}
-      <div
-        className={`flex items-center gap-2.5 py-5 border-b ${collapsed ? 'justify-center px-0' : 'px-3'}`}
-        style={{ borderColor: 'rgba(255,255,255,0.1)' }}
-      >
+      {/* Brand */}
+      <div className={`flex items-center h-[60px] flex-shrink-0 ${collapsed ? 'justify-center px-0' : 'px-4'}`}>
         {!collapsed && (
-          <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm shadow-md"
-            style={{ background: 'rgba(255,255,255,0.25)', color: 'white' }}
-          >
-            K
+          <div className="flex items-center gap-2.5 flex-1 min-w-0">
+            <img
+              src="/logo.png"
+              alt="Noir"
+              className="h-8 w-auto object-contain flex-shrink-0"
+            />
+            <span className="font-semibold text-[15px] tracking-tight truncate" style={{ color: 'var(--text)' }}>
+              Noir
+            </span>
           </div>
-        )}
-        {!collapsed && (
-          <span className="text-white font-bold text-base truncate flex-1 tracking-tight">
-            KanbanApp
-          </span>
         )}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex-shrink-0 transition-opacity opacity-60 hover:opacity-100 cursor-pointer p-1.5 rounded-lg hover:bg-white/10"
-          style={{ color: 'white' }}
+          className="icon-btn flex-shrink-0"
           title={collapsed ? 'Expandir' : 'Colapsar'}
         >
-          <PanelLeft size={18} className={collapsed ? 'rotate-180' : ''} />
+          <PanelLeft size={17} className={collapsed ? 'rotate-180' : ''} />
         </button>
       </div>
 
       {/* Nav */}
-      <nav className={`flex-1 py-4 flex flex-col gap-1 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2' : 'px-2.5'}`}>
+      <nav className={`flex-1 py-3 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2.5' : 'px-3'}`}>
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink
             key={to}
             to={to}
             title={collapsed ? label : undefined}
             className={({ isActive }) =>
-              `sidebar-link flex items-center gap-3 py-3 rounded-xl text-[15px] font-semibold cursor-pointer ${
-                collapsed ? 'justify-center px-0' : 'px-3.5'
-              } ${
-                isActive
-                  ? 'bg-white/20 text-white shadow-sm'
-                  : 'text-white/70 hover:bg-white/10 hover:text-white'
+              `sidebar-link flex items-center gap-3 h-9 rounded-lg text-[13.5px] font-medium ${
+                collapsed ? 'justify-center px-0' : 'px-3'
               }`
             }
+            style={({ isActive }) => ({
+              background: isActive ? 'var(--bg-secondary)' : 'transparent',
+              color: isActive ? 'var(--text)' : 'var(--text-muted)',
+            })}
           >
-            <Icon size={20} className="flex-shrink-0" />
-            {!collapsed && <span className="truncate">{label}</span>}
+            {({ isActive }) => (
+              <>
+                <Icon size={18} className="flex-shrink-0" style={{ color: isActive ? 'var(--primary)' : 'currentColor' }} />
+                {!collapsed && <span className="truncate">{label}</span>}
+              </>
+            )}
           </NavLink>
         ))}
 
         {/* Recent projects */}
         {!collapsed && projects.length > 0 && (
-          <div className="mt-5">
-            <p
-              className="text-[10px] font-bold uppercase tracking-widest px-3 mb-2"
-              style={{ color: 'rgba(255,255,255,0.35)' }}
-            >
-              Proyectos recientes
+          <div className="mt-6">
+            <p className="text-[10.5px] font-semibold uppercase tracking-widest px-3 mb-1.5" style={{ color: 'var(--text-faint)' }}>
+              Proyectos
             </p>
             {projects.map((p) => (
               <NavLink
                 key={p.id}
                 to={`/projects/${p.id}`}
-                className={({ isActive }) =>
-                  `sidebar-link flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs ${
-                    isActive
-                      ? 'bg-white/20 text-white'
-                      : 'text-white/55 hover:bg-white/10 hover:text-white'
-                  }`
-                }
+                className="sidebar-link flex items-center gap-2.5 px-3 h-8 rounded-lg text-[13px]"
+                style={({ isActive }) => ({
+                  background: isActive ? 'var(--bg-secondary)' : 'transparent',
+                  color: isActive ? 'var(--text)' : 'var(--text-muted)',
+                })}
               >
                 <span
-                  className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.2)' }}
+                  className="w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
                 >
                   {p.nombre.charAt(0).toUpperCase()}
                 </span>
@@ -128,32 +121,30 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom: user + logout */}
-      <div
-        className={`py-4 border-t flex-shrink-0 space-y-1 ${collapsed ? 'px-2' : 'px-2.5'}`}
-        style={{ borderColor: 'rgba(255,255,255,0.1)' }}
-      >
+      <div className={`py-3 flex-shrink-0 ${collapsed ? 'px-2.5' : 'px-3'}`} style={{ borderTop: '1px solid var(--border)' }}>
         {!collapsed && user && (
           <NavLink
             to="/profile"
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-colors mb-1"
+            className="flex items-center gap-2.5 px-2 h-12 rounded-lg sidebar-link mb-1"
+            style={{ color: 'var(--text)' }}
           >
             {user.imagenPerfil ? (
               <img
                 src={`${API_BASE}${user.imagenPerfil}`}
                 alt={user.nombre}
-                className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2"
-                style={{ ringColor: 'rgba(255,255,255,0.4)' }}
+                className="w-7 h-7 rounded-full object-cover flex-shrink-0"
               />
             ) : (
               <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-                style={{ background: 'var(--primary)' }}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+                style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))' }}
               >
                 {user.nombre?.charAt(0).toUpperCase()}
               </div>
             )}
-            <div className="min-w-0">
-              <p className="text-white text-sm font-semibold truncate leading-tight">{user.nombre}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[13px] font-semibold truncate leading-tight" style={{ color: 'var(--text)' }}>{user.nombre}</p>
+              <p className="text-[11px] truncate leading-tight" style={{ color: 'var(--text-faint)' }}>{user.email}</p>
             </div>
           </NavLink>
         )}
@@ -161,14 +152,12 @@ export default function Sidebar() {
         <button
           onClick={handleLogout}
           title={collapsed ? 'Cerrar sesión' : undefined}
-          className={`flex items-center gap-3 py-3 rounded-xl text-[15px] font-semibold w-full transition-colors cursor-pointer ${
-            collapsed ? 'justify-center px-0' : 'px-3.5'
-          }`}
-          style={{ color: '#ffd7d3', background: 'rgba(248,81,73,0.16)' }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248,81,73,0.30)'; e.currentTarget.style.color = '#ffffff'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(248,81,73,0.16)'; e.currentTarget.style.color = '#ffd7d3'; }}
+          className={`sidebar-link flex items-center gap-3 h-9 rounded-lg text-[13.5px] font-medium w-full ${collapsed ? 'justify-center px-0' : 'px-3'}`}
+          style={{ color: 'var(--text-muted)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(240,85,107,0.10)'; e.currentTarget.style.color = 'var(--danger)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
         >
-          <LogOut size={20} className="flex-shrink-0" />
+          <LogOut size={18} className="flex-shrink-0" />
           {!collapsed && <span>Cerrar sesión</span>}
         </button>
       </div>

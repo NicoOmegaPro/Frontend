@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-  X, Trash2, Plus, Check, MessageSquare, Paperclip, ChevronDown,
-  Send, Edit2, Upload, Image, FileText, File,
+  X, Trash2, Plus, Check, Send, Edit2, Upload, Image,
+  FileText, File, ChevronDown,
 } from 'lucide-react';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -16,7 +16,6 @@ const PRIORIDADES = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
 function getAdjuntoUrl(rutaLocal) {
   if (!rutaLocal) return '';
   if (rutaLocal.startsWith('http')) return rutaLocal;
-  
   return `${BACKEND}${rutaLocal}`;
 }
 
@@ -27,35 +26,54 @@ function isImageFile(nombre, rutaLocal) {
 
 function FileIcon({ nombre }) {
   const ext = (nombre || '').split('.').pop().toLowerCase();
-  const isPdf = ext === 'pdf';
-  const isDoc = ['doc', 'docx'].includes(ext);
-  return (
-    <>
-      {isPdf ? (
-        <FileText size={28} className="text-red-400" />
-      ) : isDoc ? (
-        <FileText size={28} className="text-blue-400" />
-      ) : (
-        <File size={28} className="text-[#6B778C]" />
-      )}
-      <span className="text-[10px] text-[#6B778C] font-medium uppercase">{ext || 'FILE'}</span>
-    </>
+  return ext === 'pdf' ? (
+    <FileText size={26} className="text-red-400" />
+  ) : ['doc', 'docx'].includes(ext) ? (
+    <FileText size={26} className="text-blue-400" />
+  ) : (
+    <File size={26} style={{ color: 'var(--text-muted)' }} />
   );
 }
 
 const ESTADO_STYLE = {
-  PENDIENTE:   { bg: '#F4F5F7', color: '#6B778C', label: 'Pendiente' },
-  EN_PROGRESO: { bg: '#DEEBFF', color: '#0052CC', label: 'En progreso' },
-  EN_REVISION: { bg: '#FFF0B3', color: '#974F0C', label: 'En revisión' },
-  FINALIZADO:  { bg: '#E3FCEF', color: '#00875A', label: 'Finalizado' },
+  PENDIENTE:   { bg: 'rgba(139,139,148,.18)', color: '#B6B6BF', label: 'Pendiente' },
+  EN_PROGRESO: { bg: 'rgba(110,118,241,.18)', color: '#8A90F7', label: 'En progreso' },
+  EN_REVISION: { bg: 'rgba(224,168,46,.18)',  color: '#E0A82E', label: 'En revisión' },
+  FINALIZADO:  { bg: 'rgba(63,185,80,.18)',   color: '#4ED164', label: 'Finalizado' },
 };
 
 const PRI_STYLE = {
-  BAJA:    { color: '#00B8D9', bg: '#E6FCFF', label: 'Baja', dot: 'bg-cyan-400' },
-  MEDIA:   { color: '#0065FF', bg: '#DEEBFF', label: 'Media', dot: 'bg-blue-500' },
-  ALTA:    { color: '#FF5630', bg: '#FFF0E6', label: 'Alta', dot: 'bg-orange-500' },
-  URGENTE: { color: '#DE350B', bg: '#FFEBE6', label: 'Urgente', dot: 'bg-red-500' },
+  BAJA:    { color: '#38BDF8', bg: 'rgba(56,189,248,.18)',  label: 'Baja',    dot: 'bg-sky-400' },
+  MEDIA:   { color: '#6E76F1', bg: 'rgba(110,118,241,.18)', label: 'Media',   dot: 'bg-indigo-400' },
+  ALTA:    { color: '#FB923C', bg: 'rgba(251,146,60,.18)',  label: 'Alta',    dot: 'bg-orange-400' },
+  URGENTE: { color: '#F0556B', bg: 'rgba(240,85,107,.18)',  label: 'Urgente', dot: 'bg-rose-400' },
 };
+
+function PropLabel({ children }) {
+  return (
+    <p className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
+      {children}
+    </p>
+  );
+}
+
+function DropdownItem({ children, active, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors"
+      style={{
+        background: hovered || active ? 'var(--bg-secondary)' : 'transparent',
+        color: 'var(--text)',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
 
 function SelectDropdown({ value, options, onChange, renderOption, renderValue }) {
   const [open, setOpen] = useState(false);
@@ -69,27 +87,57 @@ function SelectDropdown({ value, options, onChange, renderOption, renderValue })
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-[#F4F5F7] text-sm transition-colors border border-transparent hover:border-[#DFE1E6]"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors border w-full"
+        style={{ borderColor: 'var(--border)', background: 'var(--card-hover)' }}
       >
-        {renderValue(value)}
-        <ChevronDown size={12} className="text-[#6B778C]" />
+        <span className="flex-1 text-left">{renderValue(value)}</span>
+        <ChevronDown size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
       </button>
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-[#DFE1E6] z-20 min-w-36 py-1">
+        <div
+          className="absolute left-0 top-full mt-1 rounded-xl shadow-2xl z-30 w-full min-w-44 py-1.5 border"
+          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+        >
           {options.map((opt) => (
-            <button
+            <DropdownItem
               key={opt}
+              active={opt === value}
               onClick={() => { onChange(opt); setOpen(false); }}
-              className={`w-full text-left px-3 py-2 text-sm hover:bg-[#F4F5F7] flex items-center gap-2 ${opt === value ? 'font-semibold' : ''}`}
             >
               {renderOption(opt)}
-              {opt === value && <Check size={12} className="ml-auto text-[#0052CC]" />}
-            </button>
+              {opt === value && <Check size={11} className="ml-auto flex-shrink-0" style={{ color: 'var(--primary)' }} />}
+            </DropdownItem>
           ))}
         </div>
       )}
     </div>
   );
+}
+
+function SectionHeader({ children }) {
+  return (
+    <h3
+      className="text-[11px] font-semibold uppercase tracking-widest mb-3 flex items-center gap-1"
+      style={{ color: 'var(--text-muted)' }}
+    >
+      {children}
+    </h3>
+  );
+}
+
+function UserAvatar({ name, muted }) {
+  return (
+    <div
+      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
+      style={{ background: muted ? 'var(--text-muted)' : 'var(--primary)' }}
+    >
+      {(name || 'U').charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function Divider() {
+  return <div className="h-px my-1" style={{ background: 'var(--border)' }} />;
 }
 
 export default function TaskDetailModal({ taskId, members, onClose, onUpdated, onDeleted }) {
@@ -122,25 +170,19 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
   const load = async () => {
     setLoading(true);
     try {
-      // Si nos pasan los miembros del proyecto, evitamos pedir TODOS los usuarios.
-      const hasMembers = Array.isArray(members) && members.length > 0;
-      const [t, allSubs, allComments, allAdj, u, allSprints, etiq] = await Promise.all([
-        api.getTask(taskId),
-        api.getSubtareas().catch(() => []),
-        api.getComentarios().catch(() => []),
-        api.getAdjuntos().catch(() => []),
-        hasMembers ? Promise.resolve(members) : api.getUsers().catch(() => []),
-        api.getSprints().catch(() => []),
+      const t = await api.getTask(taskId);
+      const [allSprints, etiq] = await Promise.all([
+        api.getSprints(t.proyectoId).catch(() => []),
         api.getEtiquetas().catch(() => []),
       ]);
       setTask(t);
       setTitleVal(t.titulo);
       setDescVal(t.descripcion || '');
-      setSubtareas(Array.isArray(allSubs) ? allSubs.filter((s) => s.tareaId === taskId) : []);
-      setComentarios(Array.isArray(allComments) ? allComments.filter((c) => c.tareaId === taskId) : []);
-      setAdjuntos(Array.isArray(allAdj) ? allAdj.filter((a) => a.tareaId === taskId) : []);
-      setUsers(Array.isArray(u) ? u : []);
-      setSprints(Array.isArray(allSprints) ? allSprints.filter((s) => s.proyectoId === t.proyectoId) : []);
+      setSubtareas(Array.isArray(t.subtareas) ? t.subtareas : []);
+      setComentarios(Array.isArray(t.comentarios) ? t.comentarios : []);
+      setAdjuntos(Array.isArray(t.adjuntos) ? t.adjuntos : []);
+      setUsers(Array.isArray(members) ? members : []);
+      setSprints(Array.isArray(allSprints) ? allSprints : []);
       setEtiquetas(Array.isArray(etiq) ? etiq : []);
     } catch {
       addToast('Error al cargar la tarea', 'error');
@@ -220,12 +262,8 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
     if (!newComment.trim()) return;
     setSendingComment(true);
     try {
-      const c = await api.createComentario({
-        contenido: newComment,
-        tareaId: taskId,
-        autorId: user.id,
-      });
-      setComentarios((prev) => [...prev, { ...c, autor: { nombre: user.nombre } }]);
+      const c = await api.createComentario({ contenido: newComment, tareaId: taskId });
+      setComentarios((prev) => [...prev, c.autor ? c : { ...c, autor: { nombre: user.nombre } }]);
       setNewComment('');
     } catch (err) {
       addToast(err.message, 'error');
@@ -240,12 +278,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
     setUploadingAdjunto(true);
     try {
       const uploaded = await api.uploadAdjunto(file);
-      const a = await api.createAdjunto({
-        nombre: uploaded.nombre,
-        rutaLocal: uploaded.rutaLocal,
-        tareaId: taskId,
-        subidoPor: user.id,
-      });
+      const a = await api.createAdjunto({ nombre: uploaded.nombre, rutaLocal: uploaded.rutaLocal, tareaId: taskId });
       setAdjuntos((prev) => [...prev, a]);
       addToast('Archivo subido correctamente', 'success');
     } catch (err) {
@@ -267,12 +300,19 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
   const subtasksDone = subtareas.filter((s) => s.completada).length;
   const subtasksPct = subtareas.length ? Math.round((subtasksDone / subtareas.length) * 100) : 0;
+  const isOverdue = task && task.fechaVencimiento && task.estado !== 'FINALIZADO' && new Date(task.fechaVencimiento) < new Date();
 
   if (loading) {
     return (
-      <div className="fixed inset-0 bg-black/40 z-50 flex items-end sm:items-center justify-end modal-backdrop">
-        <div className="bg-white w-full max-w-2xl h-full sm:h-auto sm:min-h-screen flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center modal-backdrop">
+        <div
+          className="w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{ background: 'var(--card)', border: '1px solid var(--border)' }}
+        >
+          <div
+            className="w-7 h-7 rounded-full border-[3px] animate-spin"
+            style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }}
+          />
         </div>
       </div>
     );
@@ -280,70 +320,92 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
   if (!task) return null;
 
-  const est = ESTADO_STYLE[task.estado] || ESTADO_STYLE.PENDIENTE;
-  const pri = PRI_STYLE[task.prioridad] || PRI_STYLE.MEDIA;
-
   return (
-    <div className="fixed inset-0 bg-black/40 z-50 flex modal-backdrop" onClick={onClose}>
+    <div
+      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 modal-backdrop"
+      onClick={onClose}
+    >
       <div
-        className="ml-auto bg-white w-full max-w-2xl h-full overflow-y-auto shadow-2xl modal-panel flex flex-col"
+        className="w-full max-w-5xl flex flex-col rounded-2xl shadow-2xl overflow-hidden modal-center"
+        style={{
+          background: 'var(--card)',
+          border: '1px solid var(--border)',
+          maxHeight: '90vh',
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#DFE1E6] flex-shrink-0">
-          <div className="flex items-center gap-2 text-xs text-[#6B778C]">
-            <span>{task.proyecto?.nombre || 'Proyecto'}</span>
+
+        {/* ── Header ── */}
+        <div
+          className="flex items-center justify-between px-6 py-3.5 flex-shrink-0 border-b"
+          style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
+        >
+          <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+            <span className="font-medium">{task.proyecto?.nombre || 'Proyecto'}</span>
             <span>/</span>
-            <span className="font-medium text-[#172B4D]">TAREA-{task.id}</span>
+            <span className="font-semibold" style={{ color: 'var(--text)' }}>TAREA-{task.id}</span>
           </div>
           <div className="flex items-center gap-1">
             <button
               onClick={handleDelete}
-              className="p-1.5 rounded-lg hover:bg-red-50 text-[#6B778C] hover:text-red-500 transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(240,85,107,.12)'; e.currentTarget.style.color = '#F0556B'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
               title="Eliminar tarea"
             >
               <Trash2 size={15} />
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg hover:bg-[#F4F5F7] text-[#6B778C] hover:text-[#172B4D] transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ color: 'var(--text-muted)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'var(--bg)'; e.currentTarget.style.color = 'var(--text)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)'; }}
             >
               <X size={16} />
             </button>
           </div>
         </div>
 
-        <div className="flex flex-1 overflow-hidden">
-          {/* Main content */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        {/* ── Body ── */}
+        <div className="flex flex-1 min-h-0 overflow-hidden">
+
+          {/* Left: main content */}
+          <div className="flex-1 overflow-y-auto px-8 py-7 space-y-8">
+
             {/* Title */}
             <div>
               {editingTitle ? (
-                <div className="flex gap-2">
+                <div className="flex gap-2 items-start">
                   <input
                     autoFocus
                     value={titleVal}
                     onChange={(e) => setTitleVal(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') saveTitle(); if (e.key === 'Escape') setEditingTitle(false); }}
-                    className="flex-1 text-xl font-bold text-[#172B4D] border-b-2 border-[#0052CC] outline-none bg-transparent pb-1"
+                    className="flex-1 text-[22px] font-bold border-b-2 outline-none bg-transparent pb-1"
+                    style={{ color: 'var(--text)', borderColor: 'var(--primary)' }}
                   />
-                  <button onClick={saveTitle} className="text-[#0052CC] hover:text-[#0747A6]"><Check size={16} /></button>
-                  <button onClick={() => setEditingTitle(false)} className="text-[#6B778C]"><X size={16} /></button>
+                  <button onClick={saveTitle} className="mt-1.5 p-1.5 rounded-lg" style={{ color: 'var(--primary)' }}>
+                    <Check size={16} />
+                  </button>
+                  <button onClick={() => setEditingTitle(false)} className="mt-1.5 p-1.5 rounded-lg" style={{ color: 'var(--text-muted)' }}>
+                    <X size={16} />
+                  </button>
                 </div>
               ) : (
-                <div
-                  className="flex items-start gap-2 group cursor-pointer"
-                  onClick={() => setEditingTitle(true)}
-                >
-                  <h1 className="text-xl font-bold text-[#172B4D] flex-1 leading-tight">{task.titulo}</h1>
-                  <Edit2 size={14} className="mt-1 text-[#6B778C] opacity-0 group-hover:opacity-100 flex-shrink-0" />
+                <div className="flex items-start gap-2 group cursor-pointer" onClick={() => setEditingTitle(true)}>
+                  <h1 className="text-[22px] font-bold flex-1 leading-snug" style={{ color: 'var(--text)' }}>
+                    {task.titulo}
+                  </h1>
+                  <Edit2 size={14} className="mt-2 opacity-0 group-hover:opacity-100 flex-shrink-0 transition-opacity" style={{ color: 'var(--text-muted)' }} />
                 </div>
               )}
             </div>
 
             {/* Description */}
             <div>
-              <h3 className="text-xs font-semibold text-[#6B778C] uppercase tracking-wide mb-2">Descripción</h3>
+              <SectionHeader>Descripción</SectionHeader>
               {editingDesc ? (
                 <div>
                   <textarea
@@ -351,18 +413,23 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
                     value={descVal}
                     onChange={(e) => setDescVal(e.target.value)}
                     rows={4}
-                    className="w-full border border-[#0052CC] rounded-lg px-3 py-2 text-sm text-[#172B4D] resize-none focus:outline-none"
+                    className="w-full rounded-xl px-4 py-3 text-sm border resize-none focus:outline-none"
+                    style={{ background: 'var(--bg-secondary)', borderColor: 'var(--primary)', color: 'var(--text)' }}
                     placeholder="Añade una descripción..."
                   />
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-2.5">
                     <button
                       onClick={saveDesc}
-                      className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold"
+                      className="px-4 py-1.5 rounded-lg text-white text-xs font-semibold"
                       style={{ background: 'var(--primary)' }}
                     >
                       Guardar
                     </button>
-                    <button onClick={() => setEditingDesc(false)} className="px-3 py-1.5 rounded-lg text-xs text-[#6B778C] border border-[#DFE1E6] hover:bg-[#F4F5F7]">
+                    <button
+                      onClick={() => setEditingDesc(false)}
+                      className="px-4 py-1.5 rounded-lg text-xs border transition-colors"
+                      style={{ color: 'var(--text-muted)', borderColor: 'var(--border)' }}
+                    >
                       Cancelar
                     </button>
                   </div>
@@ -370,9 +437,12 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               ) : (
                 <div
                   onClick={() => setEditingDesc(true)}
-                  className={`text-sm rounded-lg px-3 py-2.5 cursor-pointer min-h-12 hover:bg-[#F4F5F7] transition-colors ${
-                    task.descripcion ? 'text-[#172B4D]' : 'text-[#B3BAC5] italic'
-                  }`}
+                  className="text-sm rounded-xl px-4 py-3 cursor-pointer min-h-[52px] transition-opacity hover:opacity-80"
+                  style={{
+                    color: task.descripcion ? 'var(--text)' : 'var(--text-faint)',
+                    background: 'var(--bg-secondary)',
+                    fontStyle: task.descripcion ? 'normal' : 'italic',
+                  }}
                 >
                   {task.descripcion || 'Haz clic para añadir una descripción...'}
                 </div>
@@ -381,76 +451,68 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
             {/* Subtasks */}
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xs font-semibold text-[#6B778C] uppercase tracking-wide flex items-center gap-2">
+              <div className="flex items-center justify-between mb-3">
+                <SectionHeader>
                   Subtareas
                   {subtareas.length > 0 && (
-                    <span className="text-[10px] font-medium normal-case text-[#6B778C]">
+                    <span className="ml-1 text-[10px] normal-case font-medium" style={{ color: 'var(--text-muted)' }}>
                       {subtasksDone}/{subtareas.length}
                     </span>
                   )}
-                </h3>
+                </SectionHeader>
                 <button
                   onClick={() => setAddingSubtask(true)}
-                  className="flex items-center gap-1 text-xs text-[#0052CC] hover:underline"
+                  className="flex items-center gap-1 text-xs font-semibold"
+                  style={{ color: 'var(--primary)' }}
                 >
-                  <Plus size={12} /> Añadir
+                  <Plus size={13} /> Añadir
                 </button>
               </div>
 
               {subtareas.length > 0 && (
-                <div className="mb-3">
-                  <div className="progress-bar mb-1">
-                    <div className="progress-bar-fill" style={{ width: `${subtasksPct}%` }} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                    <div
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{ width: `${subtasksPct}%`, background: 'var(--primary)' }}
+                    />
                   </div>
-                  <span className="text-[10px] text-[#6B778C]">{subtasksPct}% completado</span>
+                  <span className="text-[11px] font-medium flex-shrink-0" style={{ color: 'var(--text-muted)' }}>
+                    {subtasksPct}%
+                  </span>
                 </div>
               )}
 
-              <div className="space-y-1.5">
+              <div className="space-y-1">
                 {subtareas.map((s) => (
-                  <div key={s.id} className="flex items-center gap-2 group px-1 py-0.5 rounded hover:bg-[#F4F5F7]">
-                    <button
-                      onClick={() => toggleSubtask(s)}
-                      className={`w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${
-                        s.completada
-                          ? 'bg-[#00875A] border-[#00875A]'
-                          : 'border-[#DFE1E6] hover:border-[#0052CC]'
-                      }`}
-                    >
-                      {s.completada && <Check size={10} className="text-white" strokeWidth={3} />}
-                    </button>
-                    <span className={`text-sm flex-1 ${s.completada ? 'line-through text-[#B3BAC5]' : 'text-[#172B4D]'}`}>
-                      {s.titulo}
-                    </span>
-                    <button
-                      onClick={() => deleteSubtask(s.id)}
-                      className="opacity-0 group-hover:opacity-100 p-0.5 text-[#6B778C] hover:text-red-500 transition"
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
+                  <SubtaskRow
+                    key={s.id}
+                    subtask={s}
+                    onToggle={() => toggleSubtask(s)}
+                    onDelete={() => deleteSubtask(s.id)}
+                  />
                 ))}
               </div>
 
               {addingSubtask && (
-                <div className="flex gap-2 mt-2">
+                <div className="flex gap-2 mt-3">
                   <input
                     autoFocus
                     value={newSubtask}
                     onChange={(e) => setNewSubtask(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter') addSubtask(); if (e.key === 'Escape') setAddingSubtask(false); }}
                     placeholder="Nombre de la subtarea..."
-                    className="flex-1 border border-[#DFE1E6] rounded-lg px-3 py-1.5 text-sm input-field text-[#172B4D] placeholder-[#B3BAC5]"
+                    className="flex-1 rounded-lg px-3 py-2 text-sm border focus:outline-none"
+                    style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
                   />
                   <button
                     onClick={addSubtask}
-                    className="px-3 py-1.5 rounded-lg text-white text-xs font-semibold"
+                    className="px-3 py-2 rounded-lg text-white text-xs font-semibold"
                     style={{ background: 'var(--primary)' }}
                   >
                     Añadir
                   </button>
-                  <button onClick={() => setAddingSubtask(false)} className="px-2 py-1.5 text-[#6B778C]">
+                  <button onClick={() => setAddingSubtask(false)} className="px-2 py-2" style={{ color: 'var(--text-muted)' }}>
                     <X size={14} />
                   </button>
                 </div>
@@ -459,99 +521,45 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
             {/* Attachments */}
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-xs font-semibold text-[#6B778C] uppercase tracking-wide">
-                  Adjuntos <span className="normal-case text-[10px]">({adjuntos.length})</span>
-                </h3>
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploadingAdjunto}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-[#0052CC] hover:text-[#0747A6] disabled:opacity-50"
-                >
-                  <Upload size={12} />
-                  {uploadingAdjunto ? 'Subiendo...' : 'Subir archivo'}
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*,.pdf,.doc,.docx,.txt"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                />
-              </div>
+              <SectionHeader>Adjuntos ({adjuntos.length})</SectionHeader>
+              <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
 
-              {/* Upload drop zone (click to open file picker) */}
               {adjuntos.length === 0 && !uploadingAdjunto && (
-                <button
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full border-2 border-dashed border-[#DFE1E6] rounded-xl py-6 flex flex-col items-center gap-2 hover:border-[#0052CC] hover:bg-[#F4F5F7] transition-colors group"
-                >
-                  <Upload size={20} className="text-[#B3BAC5] group-hover:text-[#0052CC]" />
-                  <span className="text-xs text-[#B3BAC5] group-hover:text-[#6B778C]">
-                    Haz clic para subir imágenes o archivos
-                  </span>
-                  <span className="text-[10px] text-[#C1C7D0]">JPG, PNG, GIF, PDF · Máx. 10 MB</span>
-                </button>
+                <DropZone onClick={() => fileInputRef.current?.click()} />
               )}
 
               {uploadingAdjunto && (
-                <div className="flex items-center justify-center gap-2 py-4 text-sm text-[#6B778C]">
-                  <div className="w-4 h-4 border-2 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+                <div className="flex items-center justify-center gap-2.5 py-5 text-sm" style={{ color: 'var(--text-muted)' }}>
+                  <div className="w-4 h-4 rounded-full border-2 animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
                   Subiendo archivo...
                 </div>
               )}
 
               {adjuntos.length > 0 && (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-3 gap-3">
                   {adjuntos.map((a) => {
                     const imgUrl = getAdjuntoUrl(a.rutaLocal);
                     const isImg = isImageFile(a.nombre, a.rutaLocal);
                     return (
-                      <div key={a.id} className="group relative rounded-lg border border-[#DFE1E6] overflow-hidden hover:border-[#0052CC] transition-colors">
-                        {isImg ? (
-                          <a href={imgUrl} target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={imgUrl}
-                              alt={a.nombre}
-                              className="w-full h-28 object-cover"
-                              onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-                            />
-                            <div className="hidden w-full h-28 items-center justify-center bg-[#F4F5F7] flex-col gap-1">
-                              <Image size={20} className="text-[#B3BAC5]" />
-                              <span className="text-[10px] text-[#B3BAC5]">Sin vista previa</span>
-                            </div>
-                          </a>
-                        ) : (
-                          <a
-                            href={imgUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex flex-col items-center justify-center gap-1.5 h-28 bg-[#F4F5F7] hover:bg-[#EBECF0] transition-colors"
-                          >
-                            <FileIcon nombre={a.nombre} />
-                          </a>
-                        )}
-                        <div className="px-2 py-1.5 flex items-center justify-between gap-1">
-                          <span className="text-[10px] text-[#172B4D] truncate font-medium">{a.nombre}</span>
-                          <button
-                            onClick={() => deleteAdjunto(a.id)}
-                            className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-0.5 text-[#6B778C] hover:text-red-500 transition"
-                          >
-                            <X size={11} />
-                          </button>
-                        </div>
-                      </div>
+                      <AdjuntoCard
+                        key={a.id}
+                        adjunto={a}
+                        imgUrl={imgUrl}
+                        isImg={isImg}
+                        onDelete={() => deleteAdjunto(a.id)}
+                      />
                     );
                   })}
-
-                  {/* Add more button */}
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     disabled={uploadingAdjunto}
-                    className="border-2 border-dashed border-[#DFE1E6] rounded-lg h-28 flex flex-col items-center justify-center gap-1 hover:border-[#0052CC] hover:bg-[#F4F5F7] transition-colors group disabled:opacity-50"
+                    className="border-2 border-dashed rounded-xl flex flex-col items-center justify-center gap-1.5 h-28 disabled:opacity-50 transition-colors"
+                    style={{ borderColor: 'var(--border)' }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--primary)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
                   >
-                    <Plus size={18} className="text-[#B3BAC5] group-hover:text-[#0052CC]" />
-                    <span className="text-[10px] text-[#B3BAC5] group-hover:text-[#6B778C]">Añadir más</span>
+                    <Plus size={18} style={{ color: 'var(--text-faint)' }} />
+                    <span className="text-[10px]" style={{ color: 'var(--text-faint)' }}>Añadir</span>
                   </button>
                 </div>
               )}
@@ -559,51 +567,34 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
             {/* Comments */}
             <div>
-              <h3 className="text-xs font-semibold text-[#6B778C] uppercase tracking-wide mb-3">
-                Comentarios ({comentarios.length})
-              </h3>
+              <SectionHeader>Comentarios ({comentarios.length})</SectionHeader>
 
-              <div className="flex gap-2.5 mb-4">
-                <div className="w-7 h-7 rounded-full bg-[#0052CC] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                  {user?.nombre?.charAt(0).toUpperCase()}
-                </div>
+              <div className="flex gap-3 mb-6">
+                <UserAvatar name={user?.nombre} />
                 <div className="flex-1">
-                  <textarea
+                  <CommentInput
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
-                    placeholder="Añade un comentario..."
-                    rows={2}
-                    onKeyDown={(e) => { if (e.key === 'Enter' && e.ctrlKey) sendComment(); }}
-                    className="w-full border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm input-field text-[#172B4D] placeholder-[#B3BAC5] resize-none"
+                    onChange={setNewComment}
+                    onSubmit={sendComment}
+                    sending={sendingComment}
                   />
-                  {newComment.trim() && (
-                    <button
-                      onClick={sendComment}
-                      disabled={sendingComment}
-                      className="mt-1.5 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-xs font-semibold disabled:opacity-60"
-                      style={{ background: 'var(--primary)' }}
-                    >
-                      <Send size={11} />
-                      {sendingComment ? 'Enviando...' : 'Comentar'}
-                    </button>
-                  )}
                 </div>
               </div>
 
-              <div className="space-y-4">
-                {comentarios.map((c) => (
-                  <div key={c.id} className="flex gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-[#6B778C] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
-                      {(c.autor?.nombre || 'U').charAt(0).toUpperCase()}
-                    </div>
+              <div className="space-y-5">
+                {[...comentarios].reverse().map((c) => (
+                  <div key={c.id} className="flex gap-3">
+                    <UserAvatar name={c.autor?.nombre || 'U'} muted />
                     <div className="flex-1">
-                      <div className="flex items-baseline gap-2 mb-1">
-                        <span className="text-sm font-semibold text-[#172B4D]">{c.autor?.nombre || 'Usuario'}</span>
-                        <span className="text-[10px] text-[#6B778C]">
+                      <div className="flex items-baseline gap-2.5 mb-1.5">
+                        <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
+                          {c.autor?.nombre || 'Usuario'}
+                        </span>
+                        <span className="text-[10px]" style={{ color: 'var(--text-muted)' }}>
                           {formatDistanceToNow(new Date(c.fecha), { addSuffix: true, locale: es })}
                         </span>
                       </div>
-                      <div className="bg-[#F4F5F7] rounded-lg px-3 py-2 text-sm text-[#172B4D] leading-relaxed">
+                      <div className="rounded-xl px-4 py-2.5 text-sm leading-relaxed" style={{ background: 'var(--card-hover)', color: 'var(--text)' }}>
                         {c.contenido}
                       </div>
                     </div>
@@ -611,66 +602,43 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
                 ))}
               </div>
             </div>
+
           </div>
 
-          {/* Right sidebar — details */}
+          {/* Right: properties sidebar */}
           <div
-            className="w-52 flex-shrink-0 border-l px-4 py-5 space-y-5 overflow-y-auto"
+            className="w-60 flex-shrink-0 border-l overflow-y-auto px-5 py-6 space-y-5"
             style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
           >
-            {/* Status */}
             <div>
-              <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Estado</p>
+              <PropLabel>Estado</PropLabel>
               <SelectDropdown
                 value={task.estado}
                 options={ESTADOS}
                 onChange={(v) => updateTask({ estado: v })}
-                renderValue={(v) => {
-                  const s = ESTADO_STYLE[v];
-                  return (
-                    <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>
-                  );
-                }}
-                renderOption={(v) => {
-                  const s = ESTADO_STYLE[v];
-                  return <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>;
-                }}
+                renderValue={(v) => { const s = ESTADO_STYLE[v]; return <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>; }}
+                renderOption={(v) => { const s = ESTADO_STYLE[v]; return <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>; }}
               />
             </div>
 
-            {/* Priority */}
             <div>
-              <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Prioridad</p>
+              <PropLabel>Prioridad</PropLabel>
               <SelectDropdown
                 value={task.prioridad}
                 options={PRIORIDADES}
                 onChange={(v) => updateTask({ prioridad: v })}
-                renderValue={(v) => {
-                  const p = PRI_STYLE[v];
-                  return (
-                    <span className="badge" style={{ background: p.bg, color: p.color }}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />{p.label}
-                    </span>
-                  );
-                }}
-                renderOption={(v) => {
-                  const p = PRI_STYLE[v];
-                  return (
-                    <span className="badge" style={{ background: p.bg, color: p.color }}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />{p.label}
-                    </span>
-                  );
-                }}
+                renderValue={(v) => { const p = PRI_STYLE[v]; return <span className="badge" style={{ background: p.bg, color: p.color }}><span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />{p.label}</span>; }}
+                renderOption={(v) => { const p = PRI_STYLE[v]; return <span className="badge" style={{ background: p.bg, color: p.color }}><span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />{p.label}</span>; }}
               />
             </div>
 
-            {/* Assignee */}
             <div>
-              <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Asignado a</p>
+              <PropLabel>Asignado a</PropLabel>
               <select
                 value={task.asignadoAId || ''}
                 onChange={(e) => updateTask({ asignadoAId: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full border border-[#DFE1E6] rounded-lg px-2 py-1.5 text-xs input-field bg-white text-[#172B4D]"
+                className="w-full rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
               >
                 <option value="">Sin asignar</option>
                 {users.map((u) => (
@@ -679,13 +647,13 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               </select>
             </div>
 
-            {/* Sprint */}
             <div>
-              <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Sprint</p>
+              <PropLabel>Sprint</PropLabel>
               <select
                 value={task.sprintId || ''}
                 onChange={(e) => updateTask({ sprintId: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full border border-[#DFE1E6] rounded-lg px-2 py-1.5 text-xs input-field bg-white text-[#172B4D]"
+                className="w-full rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
+                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
               >
                 <option value="">Sin sprint</option>
                 {sprints.map((s) => (
@@ -694,35 +662,194 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               </select>
             </div>
 
-            {/* Project */}
             <div>
-              <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1">Proyecto</p>
-              <p className="text-sm text-[#172B4D] font-medium">{task.proyecto?.nombre || '—'}</p>
+              <PropLabel>Vencimiento</PropLabel>
+              <input
+                type="date"
+                value={task.fechaVencimiento ? format(new Date(task.fechaVencimiento), 'yyyy-MM-dd') : ''}
+                onChange={(e) => updateTask({ fechaVencimiento: e.target.value || null })}
+                className="w-full rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
+                style={{
+                  background: 'var(--bg-secondary)',
+                  borderColor: isOverdue ? '#F0556B' : 'var(--border)',
+                  color: isOverdue ? '#F0556B' : 'var(--text)',
+                  colorScheme: 'dark',
+                }}
+              />
+              {isOverdue && (
+                <p className="text-[10px] mt-1 font-semibold" style={{ color: '#F0556B' }}>⚠ Vencida</p>
+              )}
             </div>
 
-            {/* Subtasks progress */}
+            <Divider />
+
+            <div>
+              <PropLabel>Proyecto</PropLabel>
+              <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{task.proyecto?.nombre || '—'}</p>
+            </div>
+
             {subtareas.length > 0 && (
               <div>
-                <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Progreso</p>
-                <div className="progress-bar">
-                  <div className="progress-bar-fill" style={{ width: `${subtasksPct}%` }} />
+                <PropLabel>Progreso</PropLabel>
+                <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ background: 'var(--border)' }}>
+                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${subtasksPct}%`, background: 'var(--primary)' }} />
                 </div>
-                <p className="text-[10px] text-[#6B778C] mt-1">{subtasksDone}/{subtareas.length} subtareas</p>
+                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
+                  {subtasksDone}/{subtareas.length} subtareas · {subtasksPct}%
+                </p>
               </div>
             )}
 
-            {/* Dates */}
             {task.createdAt && (
               <div>
-                <p className="text-[10px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1">Creado</p>
-                <p className="text-xs text-[#6B778C]">
+                <PropLabel>Creado</PropLabel>
+                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {format(new Date(task.createdAt), 'dd MMM yyyy', { locale: es })}
                 </p>
               </div>
             )}
           </div>
+
         </div>
       </div>
     </div>
+  );
+}
+
+function SubtaskRow({ subtask: s, onToggle, onDelete }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      className="flex items-center gap-3 group px-2 py-1.5 rounded-lg transition-colors"
+      style={{ background: hovered ? 'var(--bg-secondary)' : 'transparent' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <button
+        onClick={onToggle}
+        className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors"
+        style={s.completada
+          ? { background: '#22c55e', borderColor: '#22c55e' }
+          : { background: 'transparent', borderColor: 'var(--border)' }
+        }
+      >
+        {s.completada && <Check size={10} className="text-white" strokeWidth={3} />}
+      </button>
+      <span
+        className="text-sm flex-1"
+        style={{
+          color: s.completada ? 'var(--text-faint)' : 'var(--text)',
+          textDecoration: s.completada ? 'line-through' : 'none',
+        }}
+      >
+        {s.titulo}
+      </span>
+      <button
+        onClick={onDelete}
+        className="opacity-0 group-hover:opacity-100 p-0.5 transition-opacity"
+        style={{ color: 'var(--text-muted)' }}
+        onMouseEnter={e => e.currentTarget.style.color = '#F0556B'}
+        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+      >
+        <X size={12} />
+      </button>
+    </div>
+  );
+}
+
+function AdjuntoCard({ adjunto: a, imgUrl, isImg, onDelete }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      className="group relative rounded-xl border overflow-hidden transition-colors"
+      style={{ borderColor: hovered ? 'var(--primary)' : 'var(--border)' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {isImg ? (
+        <a href={imgUrl} target="_blank" rel="noopener noreferrer">
+          <img
+            src={imgUrl}
+            alt={a.nombre}
+            className="w-full h-24 object-cover"
+            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
+          />
+          <div className="hidden w-full h-24 items-center justify-center" style={{ background: 'var(--bg-secondary)' }}>
+            <Image size={18} style={{ color: 'var(--text-faint)' }} />
+          </div>
+        </a>
+      ) : (
+        <a
+          href={imgUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center justify-center gap-2 h-24 transition-colors"
+          style={{ background: 'var(--bg-secondary)' }}
+        >
+          <FileIcon nombre={a.nombre} />
+          <span className="text-[9px] font-semibold uppercase" style={{ color: 'var(--text-muted)' }}>
+            {(a.nombre || '').split('.').pop().toUpperCase() || 'FILE'}
+          </span>
+        </a>
+      )}
+      <div className="px-2 py-1.5 flex items-center justify-between gap-1" style={{ background: 'var(--bg-secondary)' }}>
+        <span className="text-[10px] truncate font-medium" style={{ color: 'var(--text)' }}>{a.nombre}</span>
+        <button
+          onClick={onDelete}
+          className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-0.5 transition"
+          style={{ color: 'var(--text-muted)' }}
+          onMouseEnter={e => e.currentTarget.style.color = '#F0556B'}
+          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+        >
+          <X size={11} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function DropZone({ onClick }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="w-full border-2 border-dashed rounded-xl py-7 flex flex-col items-center gap-2 transition-colors"
+      style={{ borderColor: hovered ? 'var(--primary)' : 'var(--border)' }}
+    >
+      <Upload size={20} style={{ color: 'var(--text-faint)' }} />
+      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Haz clic para subir imágenes o archivos</span>
+      <span className="text-[10px]" style={{ color: 'var(--text-faint)' }}>JPG, PNG, GIF, PDF · Máx. 10 MB</span>
+    </button>
+  );
+}
+
+function CommentInput({ value, onChange, onSubmit, sending }) {
+  return (
+    <>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Añade un comentario... (Ctrl+Enter para enviar)"
+        rows={2}
+        onKeyDown={(e) => { if (e.key === 'Enter' && e.ctrlKey) onSubmit(); }}
+        className="w-full rounded-xl px-4 py-3 text-sm border resize-none focus:outline-none transition-colors"
+        style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
+        onFocus={e => e.target.style.borderColor = 'var(--primary)'}
+        onBlur={e => e.target.style.borderColor = 'var(--border)'}
+      />
+      {value.trim() && (
+        <button
+          onClick={onSubmit}
+          disabled={sending}
+          className="mt-2 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-white text-xs font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
+          style={{ background: 'var(--primary)' }}
+        >
+          <Send size={11} />
+          {sending ? 'Enviando...' : 'Comentar'}
+        </button>
+      )}
+    </>
   );
 }

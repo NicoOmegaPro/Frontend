@@ -13,8 +13,11 @@ import EquiposPage from './components/pages/EquiposPage';
 
 function Spinner() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F4F5F7]">
-      <div className="w-8 h-8 border-4 border-[#0052CC] border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+      <div
+        className="w-7 h-7 rounded-full animate-spin"
+        style={{ border: '2.5px solid var(--border)', borderTopColor: 'var(--primary)' }}
+      />
     </div>
   );
 }

@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { Eye, EyeOff, KanbanSquare, Users, Zap, CheckCircle2 } from 'lucide-react';
+import { Eye, EyeOff, KanbanSquare, Users, Zap, ArrowRight } from 'lucide-react';
 
 const FEATURES = [
-  { icon: KanbanSquare, text: 'Tableros Kanban con arrastrar y soltar' },
-  { icon: Users,        text: 'Equipos, roles e invitaciones' },
-  { icon: Zap,          text: 'Sprints y seguimiento en tiempo real' },
+  { icon: KanbanSquare, title: 'Tableros Kanban', text: 'Arrastra y suelta, en tiempo real.' },
+  { icon: Users,        title: 'Equipos y roles', text: 'Invitaciones, permisos y supervisión.' },
+  { icon: Zap,          title: 'Sprints',         text: 'Planifica y mide el progreso.' },
 ];
 
 export default function LoginPage() {
@@ -33,84 +33,96 @@ export default function LoginPage() {
   };
 
   return (
-    <div
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{ background: 'linear-gradient(135deg, #0747A6 0%, #0052CC 50%, #2684FF 100%)' }}
-    >
-      <div className="w-full max-w-4xl grid lg:grid-cols-2 rounded-3xl overflow-hidden shadow-2xl">
-        {/* Brand panel */}
+    <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
+      {/* Brand panel */}
+      <div
+        className="hidden lg:flex flex-col justify-between w-[46%] p-12 relative overflow-hidden"
+        style={{ borderRight: '1px solid var(--border)' }}
+      >
         <div
-          className="hidden lg:flex flex-col justify-between p-10 text-white relative"
-          style={{ background: 'linear-gradient(160deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03))', backdropFilter: 'blur(6px)' }}
-        >
-          <div>
-            <div className="flex items-center gap-3 mb-10">
-              <div
-                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg"
-                style={{ background: 'rgba(255,255,255,0.22)' }}
-              >
-                <span className="text-2xl font-black">K</span>
-              </div>
-              <span className="text-2xl font-bold tracking-tight">KanbanApp</span>
-            </div>
-            <h2 className="text-3xl font-extrabold leading-tight mb-3">
-              Organiza el trabajo<br />de tu equipo, sin fricción.
-            </h2>
-            <p className="text-white/70 text-base leading-relaxed">
-              Gestión colaborativa de proyectos al estilo Jira, hecha simple.
-            </p>
-          </div>
+          className="absolute inset-0 opacity-[0.35] pointer-events-none"
+          style={{
+            background: 'radial-gradient(600px 400px at 20% 10%, var(--primary-soft), transparent 60%)',
+          }}
+        />
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px)',
+            backgroundSize: '44px 44px',
+            maskImage: 'radial-gradient(80% 80% at 50% 30%, #000, transparent)',
+          }}
+        />
 
-          <ul className="space-y-4 mt-10">
-            {FEATURES.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-center gap-3">
+        <div />
+
+        <div className="relative">
+          <div className="flex items-center gap-5 mb-8">
+            <img
+              src="/logo.png"
+              alt="Noir"
+              className="h-44 w-auto object-contain"
+              style={{ filter: 'drop-shadow(0 10px 40px var(--ring))' }}
+            />
+            <span className="text-[52px] font-bold tracking-tight leading-none" style={{ color: 'var(--text)' }}>Noir</span>
+          </div>
+          <h2 className="text-[40px] font-bold leading-[1.1] tracking-tight" style={{ color: 'var(--text)' }}>
+            El trabajo de tu equipo,<br />
+            <span style={{ color: 'var(--text-faint)' }}>sin fricción.</span>
+          </h2>
+          <p className="mt-4 text-[15px] max-w-sm" style={{ color: 'var(--text-muted)' }}>
+            Gestión de proyectos colaborativa, diseñada para moverse rápido.
+          </p>
+
+          <div className="mt-10 space-y-1">
+            {FEATURES.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="flex items-start gap-3.5 p-3 rounded-xl transition-colors hover:bg-[var(--bg-secondary)]">
                 <span
-                  className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: 'rgba(255,255,255,0.18)' }}
+                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--primary-hover)' }}
                 >
-                  <Icon size={18} />
+                  <Icon size={17} />
                 </span>
-                <span className="text-white/90 text-sm font-medium">{text}</span>
-              </li>
+                <div>
+                  <p className="text-[13.5px] font-semibold" style={{ color: 'var(--text)' }}>{title}</p>
+                  <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>{text}</p>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
 
-        {/* Form panel */}
-        <div className="bg-white p-8 sm:p-10 flex flex-col justify-center">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div
-              className="w-11 h-11 rounded-2xl flex items-center justify-center text-white"
-              style={{ background: 'var(--primary)' }}
-            >
-              <span className="text-xl font-black">K</span>
-            </div>
-            <span className="text-xl font-bold text-[#172B4D]">KanbanApp</span>
+        <div className="relative text-[12px]" style={{ color: 'var(--text-faint)' }}>
+          © {new Date().getFullYear()} Noir · Gestión de proyectos
+        </div>
+      </div>
+
+      {/* Form panel */}
+      <div className="flex-1 flex items-center justify-center p-6">
+        <div className="w-full max-w-[380px] fade-up">
+          <div className="lg:hidden flex items-center gap-3 mb-10">
+            <img src="/logo.png" alt="Noir" className="h-10 w-auto object-contain" />
+            <span className="text-[26px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Noir</span>
           </div>
 
-          <h1 className="text-2xl font-extrabold text-[#172B4D] mb-1">Bienvenido de nuevo</h1>
-          <p className="text-[#6B778C] text-sm mb-7">Inicia sesión para continuar</p>
+          <h1 className="text-[26px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Bienvenido de nuevo</h1>
+          <p className="text-[14px] mt-1.5 mb-8" style={{ color: 'var(--text-muted)' }}>Inicia sesión para continuar</p>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-2">
-                Correo electrónico
-              </label>
+              <label className="block text-[12.5px] font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Correo electrónico</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                className="input-field w-full border border-[#DFE1E6] rounded-xl px-4 py-3 text-[15px] text-[#172B4D] placeholder-[#B3BAC5]"
+                className="input-field w-full px-3.5 py-2.5 text-[14px]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-2">
-                Contraseña
-              </label>
+              <label className="block text-[12.5px] font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Contraseña</label>
               <div className="relative">
                 <input
                   type={showPwd ? 'text' : 'password'}
@@ -118,36 +130,28 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="input-field w-full border border-[#DFE1E6] rounded-xl px-4 py-3 text-[15px] text-[#172B4D] placeholder-[#B3BAC5] pr-11"
+                  className="input-field w-full px-3.5 py-2.5 text-[14px] pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#6B778C] hover:text-[#172B4D]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  style={{ color: 'var(--text-faint)' }}
                 >
-                  {showPwd ? <EyeOff size={17} /> : <Eye size={17} />}
+                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl text-white font-bold text-[15px] disabled:opacity-60 transition-all hover:opacity-90 hover:shadow-lg flex items-center justify-center gap-2"
-              style={{ background: 'var(--primary)' }}
-            >
-              {loading ? 'Iniciando sesión...' : (<><CheckCircle2 size={18} /> Iniciar sesión</>)}
+            <button type="submit" disabled={loading} className="btn btn-primary w-full !py-2.5 mt-2 group">
+              {loading ? 'Iniciando sesión...' : (<>Iniciar sesión <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" /></>)}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-[#6B778C]">
+          <p className="mt-7 text-center text-[13.5px]" style={{ color: 'var(--text-muted)' }}>
             ¿No tienes cuenta?{' '}
-            <Link
-              to="/register"
-              className="font-bold hover:underline"
-              style={{ color: 'var(--primary)' }}
-            >
-              Regístrate aquí
+            <Link to="/register" className="font-semibold hover:underline" style={{ color: 'var(--primary-hover)' }}>
+              Regístrate
             </Link>
           </p>
         </div>
