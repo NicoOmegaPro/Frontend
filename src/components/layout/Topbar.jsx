@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Sun, Moon, Check, X } from 'lucide-react';
+import { Bell, Check, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
 import { api } from '../../api';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useNavigate, useLocation } from 'react-router-dom';
-
-const API_BASE = 'http://localhost:3000';
+import { avatarSrc } from '../../utils/avatar';
 
 const PAGE_TITLES = [
   { match: '/dashboard', title: 'Dashboard' },
@@ -19,7 +17,6 @@ const PAGE_TITLES = [
 
 export default function Topbar({ collapsed = false }) {
   const { user } = useAuth();
-  const { dark, toggle } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [notifications, setNotifications] = useState([]);
@@ -91,11 +88,6 @@ export default function Topbar({ collapsed = false }) {
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Theme toggle */}
-        <button onClick={toggle} title={dark ? 'Modo claro' : 'Modo oscuro'} className="icon-btn">
-          {dark ? <Sun size={17} /> : <Moon size={17} />}
-        </button>
-
         {/* Notifications */}
         <div ref={ref} className="relative">
           <button onClick={() => setShowNotifs(!showNotifs)} className="icon-btn relative">
@@ -215,7 +207,7 @@ export default function Topbar({ collapsed = false }) {
             style={{ borderLeft: '1px solid var(--border)' }}
           >
             {user.imagenPerfil ? (
-              <img src={`${API_BASE}${user.imagenPerfil}`} alt={user.nombre} className="w-8 h-8 rounded-full object-cover" />
+              <img src={avatarSrc(user.imagenPerfil)} alt={user.nombre} className="w-8 h-8 rounded-full object-cover" />
             ) : (
               <div
                 className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[13px] font-bold"

@@ -55,8 +55,8 @@ export default function KanbanBoard({
     if (!task) return;
     if (task.estado === targetStatus) return;
 
-    // TRABAJADOR no puede arrastrar a FINALIZADO
-    if (targetStatus === 'FINALIZADO' && myTeamRole === 'TRABAJADOR') return;
+    // Solo jefe de equipo o supervisor pueden mover a FINALIZADO.
+    if (targetStatus === 'FINALIZADO' && !['JEFE_EQUIPO', 'SUPERVISOR'].includes(myTeamRole)) return;
 
     if (targetStatus === 'FINALIZADO') {
       setJustFinishedId(task.id);

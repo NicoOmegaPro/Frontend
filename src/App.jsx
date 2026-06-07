@@ -1,6 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
-import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/layout/Layout';
 import LoginPage from './components/pages/LoginPage';
 import RegisterPage from './components/pages/RegisterPage';
@@ -30,7 +29,6 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <ThemeProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -54,6 +52,5 @@ export default function App() {
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
-    </ThemeProvider>
   );
 }

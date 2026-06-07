@@ -1,20 +1,19 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-  Users, Plus, Crown, User as UserIcon,
+  Users, Plus, Crown, User as UserIcon, Shield, Camera,
   Mail, ChevronDown, ChevronUp, Trash2, X,
 } from 'lucide-react';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import Pagination, { useClientPagination } from '../common/Pagination';
+import { avatarSrc } from '../../utils/avatar';
 
-const API_BASE = 'http://localhost:3000';
-
-// En un equipo solo hay dos roles: jefe de equipo y miembro.
-// Los rangos de proyecto se asignan al crear cada proyecto.
+// Único nivel de rol: el del equipo. El jefe puede ascender miembros a Supervisor.
 const ROL_META = {
   JEFE_EQUIPO: { label: 'Jefe de Equipo', icon: Crown,    color: '#f5a623', bg: 'rgba(245,166,35,.15)' },
+  SUPERVISOR:  { label: 'Supervisor',     icon: Shield,   color: '#a78bfa', bg: 'rgba(167,139,250,.15)' },
   MIEMBRO:     { label: 'Miembro',         icon: UserIcon, color: '#3fb950', bg: 'rgba(63,185,80,.15)' },
 };
 
@@ -34,7 +33,7 @@ function RolBadge({ rol }) {
 
 function Avatar({ user }) {
   if (user?.imagenPerfil) {
-    return <img src={`${API_BASE}${user.imagenPerfil}`} alt={user.nombre} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
+    return <img src={avatarSrc(user.imagenPerfil)} alt={user.nombre} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />;
   }
   return (
     <div className="w-10 h-10 rounded-full flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0" style={{ background: 'var(--primary)' }}>
@@ -130,6 +129,34 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
 
   const isJefe = equipo.myRol === 'JEFE_EQUIPO';
   const membersPg = useClientPagination(equipo.usuarios || [], 6);
+  const imgRef = useRef(null);
+  const [uploadingImg, setUploadingImg] = useState(false);
+
+  const handleUploadImagen = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingImg(true);
+    try {
+      await api.uploadEquipoImagen(equipo.id, file);
+      addToast('Imagen del equipo actualizada', 'success');
+      onUpdate();
+    } catch (err) {
+      addToast(err.message, 'error');
+    } finally {
+      setUploadingImg(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleCambiarRol = async (userId, rol) => {
+    try {
+      await api.cambiarRolMiembro(equipo.id, userId, rol);
+      addToast('Rol actualizado', 'success');
+      onUpdate();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
 
   const handleInvitar = async (e) => {
     e.preventDefault();
@@ -175,8 +202,30 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
       <div className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-2xl font-bold flex-shrink-0" style={{ background: 'var(--primary)' }}>
-              {equipo.nombre.charAt(0).toUpperCase()}
+            <div className="relative w-14 h-14 rounded-2xl overflow-hidden flex-shrink-0 group/img">
+              {equipo.imagen ? (
+                <img src={avatarSrc(equipo.imagen)} alt={equipo.nombre} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white text-2xl font-bold" style={{ background: 'var(--primary)' }}>
+                  {equipo.nombre.charAt(0).toUpperCase()}
+                </div>
+              )}
+              {isJefe && (
+                <>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); imgRef.current?.click(); }}
+                    disabled={uploadingImg}
+                    className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity"
+                    style={{ background: 'rgba(0,0,0,0.5)' }}
+                    title="Cambiar imagen del equipo"
+                  >
+                    {uploadingImg
+                      ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      : <Camera size={16} className="text-white" />}
+                  </button>
+                  <input ref={imgRef} type="file" accept="image/jpeg,image/jpg,image/png,image/webp" className="hidden" onChange={handleUploadImagen} />
+                </>
+              )}
             </div>
             <div>
               <h3 className="font-bold text-[17px]" style={{ color: 'var(--text)' }}>{equipo.nombre}</h3>
@@ -221,7 +270,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
             {equipo.usuarios.slice(0, 8).map((m) => (
               <div key={m.usuarioId} title={m.usuario?.nombre} className="w-7 h-7 rounded-full border-2 overflow-hidden flex-shrink-0" style={{ borderColor: 'var(--card)' }}>
                 {m.usuario?.imagenPerfil ? (
-                  <img src={`${API_BASE}${m.usuario.imagenPerfil}`} alt={m.usuario.nombre} className="w-full h-full object-cover" />
+                  <img src={avatarSrc(m.usuario.imagenPerfil)} alt={m.usuario.nombre} className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold" style={{ background: 'var(--primary)' }}>
                     {m.usuario?.nombre?.charAt(0).toUpperCase()}
@@ -260,7 +309,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
             </button>
           </form>
           <p className="text-xs mt-2" style={{ color: 'var(--text-muted)' }}>
-            Los roles de proyecto (Jefe de Proyecto, Supervisor, Trabajador) se asignan al crear cada proyecto.
+            Los invitados entran como <strong>Miembro</strong>. Luego puedes ascenderlos a <strong>Supervisor</strong> desde la lista de miembros.
           </p>
         </div>
       )}
@@ -291,7 +340,22 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
                     <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{m.usuario?.email}</p>
                   </div>
 
-                  <RolBadge rol={m.rol} />
+                  {/* Rol: editable por el jefe (Supervisor/Miembro), si no badge */}
+                  {isJefe && !isMe && !isJefeTarget ? (
+                    <select
+                      value={m.rol === 'SUPERVISOR' ? 'SUPERVISOR' : 'MIEMBRO'}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => { e.stopPropagation(); handleCambiarRol(m.usuarioId, e.target.value); }}
+                      className="text-[12px] font-semibold rounded-lg px-2 py-1 border cursor-pointer flex-shrink-0"
+                      style={{ background: 'var(--bg-elev)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
+                      title="Cambiar rol del miembro"
+                    >
+                      <option value="MIEMBRO">Miembro</option>
+                      <option value="SUPERVISOR">Supervisor</option>
+                    </select>
+                  ) : (
+                    <RolBadge rol={m.rol} />
+                  )}
 
                   {/* Expulsar */}
                   {isJefe && !isMe && !isJefeTarget && (

@@ -4,8 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-
-const API_BASE = 'http://localhost:3000';
+import { avatarSrc } from '../../utils/avatar';
 
 const ADMIN_STYLE = { bg: 'rgba(248,81,73,.15)', color: '#f85149' };
 
@@ -120,7 +119,7 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
-  const isAdmin = user.rolId === 1;
+  const isAdmin = user.esAdmin;
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -140,7 +139,7 @@ export default function ProfilePage() {
               <div className="relative group">
                 {user.imagenPerfil ? (
                   <img
-                    src={`${API_BASE}${user.imagenPerfil}`}
+                    src={avatarSrc(user.imagenPerfil)}
                     alt={user.nombre}
                     className="w-28 h-28 rounded-full object-cover ring-4"
                     style={{ ringColor: 'var(--primary)' }}
@@ -202,12 +201,20 @@ export default function ProfilePage() {
                     style={{ background: 'var(--bg-secondary)' }}
                     title={`Abrir ${eq.nombre}`}
                   >
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0"
-                      style={{ background: 'var(--primary)' }}
-                    >
-                      {eq.nombre.charAt(0).toUpperCase()}
-                    </div>
+                    {eq.imagen ? (
+                      <img
+                        src={avatarSrc(eq.imagen)}
+                        alt={eq.nombre}
+                        className="w-10 h-10 rounded-xl object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0"
+                        style={{ background: 'var(--primary)' }}
+                      >
+                        {eq.nombre.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--text)' }}>
                         {eq.nombre}

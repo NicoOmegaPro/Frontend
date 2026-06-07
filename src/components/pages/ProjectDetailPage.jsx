@@ -8,6 +8,7 @@ import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import KanbanBoard from '../kanban/KanbanBoard';
 import TaskDetailModal from '../tasks/TaskDetailModal';
+import Avatar from '../common/Avatar';
 import CreateTaskModal from '../tasks/CreateTaskModal';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
@@ -153,11 +154,11 @@ export default function ProjectDetailPage() {
     .map((m) => m.usuario)
     .filter(Boolean);
 
-  // Rol del usuario en este proyecto (viene del backend)
+  // Rol del usuario en este proyecto = su rol en el equipo (viene del backend)
   const myTeamRole = project?.myProjectRole ?? null;
-  const canManageProject = myTeamRole === 'JEFE_EQUIPO' || myTeamRole === 'JEFE_PROYECTO' || user?.rolId === 1;
+  const canManageProject = myTeamRole === 'JEFE_EQUIPO' || user?.esAdmin;
   const canCreateSprint  = canManageProject || myTeamRole === 'SUPERVISOR';
-  const canCreateTask    = !!myTeamRole; // cualquier miembro del proyecto puede crear tarea
+  const canCreateTask    = !!myTeamRole; // cualquier miembro del equipo puede crear tarea
 
   const priorityBarData = {
     labels: ['Urgente', 'Alta', 'Media', 'Baja'],
@@ -251,10 +252,8 @@ export default function ProjectDetailPage() {
               )}
               <div className="flex items-center gap-4 mt-2 flex-wrap">
                 {project.lider && (
-                  <span className="text-xs text-[#6B778C] flex items-center gap-1">
-                    <span className="w-5 h-5 rounded-full bg-[#0052CC] flex items-center justify-center text-white text-[10px] font-bold">
-                      {project.lider.nombre.charAt(0)}
-                    </span>
+                  <span className="text-xs text-[#6B778C] flex items-center gap-1.5">
+                    <Avatar user={project.lider} size={20} />
                     {project.lider.nombre}
                   </span>
                 )}
@@ -262,10 +261,10 @@ export default function ProjectDetailPage() {
                 <span className="text-xs text-[#6B778C]">{sprints.length} sprints</span>
                 {myTeamRole && (
                   <span className="badge" style={{
-                    background: myTeamRole === 'JEFE_EQUIPO' ? 'rgba(245,166,35,.15)' : myTeamRole === 'JEFE_PROYECTO' ? 'rgba(90,156,248,.15)' : myTeamRole === 'SUPERVISOR' ? 'rgba(167,139,250,.15)' : 'rgba(63,185,80,.15)',
-                    color: myTeamRole === 'JEFE_EQUIPO' ? '#f5a623' : myTeamRole === 'JEFE_PROYECTO' ? '#5a9cf8' : myTeamRole === 'SUPERVISOR' ? '#a78bfa' : '#3fb950',
+                    background: myTeamRole === 'JEFE_EQUIPO' ? 'rgba(245,166,35,.15)' : myTeamRole === 'SUPERVISOR' ? 'rgba(167,139,250,.15)' : 'rgba(63,185,80,.15)',
+                    color: myTeamRole === 'JEFE_EQUIPO' ? '#f5a623' : myTeamRole === 'SUPERVISOR' ? '#a78bfa' : '#3fb950',
                   }}>
-                    {{ JEFE_EQUIPO: 'Jefe de Equipo', JEFE_PROYECTO: 'Jefe de Proyecto', SUPERVISOR: 'Supervisor', TRABAJADOR: 'Trabajador' }[myTeamRole]}
+                    {{ JEFE_EQUIPO: 'Jefe de Equipo', SUPERVISOR: 'Supervisor', MIEMBRO: 'Miembro' }[myTeamRole]}
                   </span>
                 )}
               </div>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, FolderKanban, Trash2, Archive, Search } from 'lucide-react';
+import { Plus, FolderKanban, Trash2, Archive, Search, Users } from 'lucide-react';
 import { api } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import CreateProjectModal from '../projects/CreateProjectModal';
+import Avatar from '../common/Avatar';
 
 const ESTADO_STYLE = {
   ACTIVO:     { bg: 'rgba(63,185,80,.14)',   color: '#4ED164', label: 'Activo' },
@@ -31,7 +32,7 @@ export default function ProjectsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [isLeader, setIsLeader] = useState(false);
 
-  const canManage = user?.rolId === 1 || isLeader;
+  const canManage = user?.esAdmin || isLeader;
 
   const load = async () => {
     setLoading(true);
@@ -207,17 +208,23 @@ export default function ProjectsPage() {
                   {p.descripcion || 'Sin descripción'}
                 </p>
 
-                {p.lider && (
-                  <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mb-4 flex-wrap">
+                  {p.lider && (
+                    <div className="flex items-center gap-2">
+                      <Avatar user={p.lider} size={20} />
+                      <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{p.lider.nombre}</span>
+                    </div>
+                  )}
+                  {p.equipo?.nombre && (
                     <span
-                      className="w-5 h-5 rounded-full flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
-                      style={{ background: 'var(--primary)' }}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full"
+                      style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                      title="Equipo del proyecto"
                     >
-                      {p.lider.nombre.charAt(0)}
+                      <Users size={11} /> {p.equipo.nombre}
                     </span>
-                    <span className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{p.lider.nombre}</span>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 <div>
                   <div className="flex justify-between text-[12px] mb-2" style={{ color: 'var(--text-muted)' }}>

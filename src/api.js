@@ -39,10 +39,6 @@ export const api = {
   createProject: (data) => request('POST', '/projects', data),
   updateProject: (id, data) => request('PUT', `/projects/${id}`, data),
   deleteProject: (id) => request('DELETE', `/projects/${id}`),
-  // Miembros y roles del proyecto
-  addProjectMember: (projectId, data) => request('POST', `/projects/${projectId}/miembros`, data),
-  updateProjectMember: (projectId, userId, rol) => request('PUT', `/projects/${projectId}/miembros/${userId}`, { rol }),
-  removeProjectMember: (projectId, userId) => request('DELETE', `/projects/${projectId}/miembros/${userId}`),
 
   // filtros opcionales: { proyectoId, estado, prioridad, asignadoAId, sprintId, q, vencidas }
   getTasks: (filtros) => {
@@ -84,7 +80,23 @@ export const api = {
   aceptarInvitacion: (equipoId) => request('PUT', `/equipos/${equipoId}/aceptar`),
   rechazarInvitacion: (equipoId) => request('DELETE', `/equipos/${equipoId}/rechazar`),
   // Gestión de miembros
+  cambiarRolMiembro: (equipoId, userId, rol) => request('PUT', `/equipos/${equipoId}/miembros/${userId}/rol`, { rol }),
   expulsarMiembro: (equipoId, userId) => request('DELETE', `/equipos/${equipoId}/miembros/${userId}`),
+  uploadEquipoImagen: async (equipoId, file) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('image', file);
+    const res = await fetch(`${API_BASE}/equipos/${equipoId}/imagen`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Error de red' }));
+      throw new Error(err.error || 'Error al subir la imagen');
+    }
+    return res.json();
+  },
 
   getSprints: (proyectoId) => request('GET', `/sprints?proyectoId=${proyectoId}`),
   createSprint: (data) => request('POST', '/sprints', data),
@@ -94,6 +106,9 @@ export const api = {
   getEtiquetas: () => request('GET', '/etiquetas'),
   createEtiqueta: (data) => request('POST', '/etiquetas', data),
   deleteEtiqueta: (id) => request('DELETE', `/etiquetas/${id}`),
+  // Etiquetas por tarea (devuelven la lista actualizada de la tarea)
+  addEtiquetaTarea: (tareaId, etiquetaId) => request('POST', `/tasks/${tareaId}/etiquetas`, { etiquetaId }),
+  removeEtiquetaTarea: (tareaId, etiquetaId) => request('DELETE', `/tasks/${tareaId}/etiquetas/${etiquetaId}`),
 
   getAdjuntos: (tareaId) => request('GET', `/adjuntos?tareaId=${tareaId}`),
   createAdjunto: (data) => request('POST', '/adjuntos', data),
@@ -147,8 +162,6 @@ export const api = {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return request('GET', `/historial${qs}`);
   },
-
-  getRoles: () => request('GET', '/roles'),
 };
 
 export default api;

@@ -4,6 +4,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { MessageSquare, CheckSquare, Paperclip, Calendar } from 'lucide-react';
 import { format, isPast, isToday } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Avatar from '../common/Avatar';
 
 export const PRIORIDAD_CONFIG = {
   URGENTE: { color: '#F0556B', label: 'Urgente' },
@@ -74,12 +75,22 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
     >
       {celebrating && <div className="celebrate-overlay" />}
 
-      {/* Labels */}
+      {/* Etiquetas */}
       {task.etiquetas && task.etiquetas.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2.5">
-          {task.etiquetas.slice(0, 4).map((te) => (
-            <span key={te.etiquetaId} className="h-1.5 w-7 rounded-full" style={{ background: te.etiqueta?.color || 'var(--border-strong)' }} />
-          ))}
+          {task.etiquetas.slice(0, 4).map((te) => {
+            const color = te.etiqueta?.color || 'var(--border-strong)';
+            return (
+              <span
+                key={te.etiquetaId}
+                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10.5px] font-semibold"
+                style={{ background: `${color}1f`, color }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ background: color }} />
+                {te.etiqueta?.nombre}
+              </span>
+            );
+          })}
         </div>
       )}
 
@@ -134,15 +145,7 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
           )}
         </div>
 
-        {task.asignadoA && (
-          <div
-            className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[10.5px] font-bold flex-shrink-0"
-            style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-dark))' }}
-            title={task.asignadoA.nombre}
-          >
-            {task.asignadoA.nombre?.charAt(0).toUpperCase()}
-          </div>
-        )}
+        {task.asignadoA && <Avatar user={task.asignadoA} size={24} />}
       </div>
     </div>
   );

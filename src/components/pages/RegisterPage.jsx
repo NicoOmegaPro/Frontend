@@ -93,7 +93,7 @@ export default function RegisterPage() {
             </div>
 
             <p className="text-[12px] leading-relaxed rounded-lg p-3" style={{ color: 'var(--text-muted)', background: 'var(--bg-secondary)', border: '1px solid var(--border)' }}>
-              Tu cuenta se crea sin rol. Obtendrás uno al crear un equipo (serás su Jefe de Equipo) o cuando te asignen uno en un proyecto.
+              Tu cuenta se crea sin rol. Obtendrás uno al crear un equipo (serás su Jefe de Equipo) o al unirte a uno (Miembro, y el jefe podrá ascenderte a Supervisor).
             </p>
 
             <button type="submit" disabled={loading} className="btn btn-primary w-full !py-2.5 group">

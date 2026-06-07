@@ -3,8 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Shield, Users, Mail, User } from 'lucide-react';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
+import { avatarSrc } from '../../utils/avatar';
 
-const API_BASE = 'http://localhost:3000';
 const ADMIN_STYLE = { bg: 'rgba(248,81,73,.15)', color: '#f85149' };
 
 function SectionCard({ title, icon: Icon, children }) {
@@ -67,7 +67,7 @@ export default function UserProfilePage() {
     );
   }
 
-  const isAdmin = (profile.rolId ?? profile.rol?.id) === 1;
+  const isAdmin = !!profile.esAdmin;
   const equipos = (profile.equipos || []).map((m) => m.equipo).filter(Boolean);
 
   return (
@@ -97,7 +97,7 @@ export default function UserProfilePage() {
             <div className="flex flex-col items-center text-center gap-4">
               {profile.imagenPerfil ? (
                 <img
-                  src={`${API_BASE}${profile.imagenPerfil}`}
+                  src={avatarSrc(profile.imagenPerfil)}
                   alt={profile.nombre}
                   className="w-28 h-28 rounded-full object-cover ring-4"
                   style={{ ringColor: 'var(--primary)' }}
@@ -138,12 +138,16 @@ export default function UserProfilePage() {
                     style={{ background: 'var(--bg-secondary)' }}
                     title={`Abrir ${eq.nombre}`}
                   >
-                    <div
-                      className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0"
-                      style={{ background: 'var(--primary)' }}
-                    >
-                      {eq.nombre.charAt(0).toUpperCase()}
-                    </div>
+                    {eq.imagen ? (
+                      <img src={avatarSrc(eq.imagen)} alt={eq.nombre} className="w-10 h-10 rounded-xl object-cover flex-shrink-0" />
+                    ) : (
+                      <div
+                        className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-[15px] font-bold flex-shrink-0"
+                        style={{ background: 'var(--primary)' }}
+                      >
+                        {eq.nombre.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="text-[14px] font-semibold truncate" style={{ color: 'var(--text)' }}>{eq.nombre}</p>
                       <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>

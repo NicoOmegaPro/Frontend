@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { formatDistanceToNow, format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import Avatar from '../common/Avatar';
 
 const BACKEND = 'http://localhost:3000';
 const ESTADOS = ['PENDIENTE', 'EN_PROGRESO', 'EN_REVISION', 'FINALIZADO'];
@@ -125,17 +126,6 @@ function SectionHeader({ children }) {
   );
 }
 
-function UserAvatar({ name, muted }) {
-  return (
-    <div
-      className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0"
-      style={{ background: muted ? 'var(--text-muted)' : 'var(--primary)' }}
-    >
-      {(name || 'U').charAt(0).toUpperCase()}
-    </div>
-  );
-}
-
 function Divider() {
   return <div className="h-px my-1" style={{ background: 'var(--border)' }} />;
 }
@@ -198,6 +188,20 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
     try {
       const updated = await api.updateTask(taskId, data);
       setTask((prev) => ({ ...prev, ...updated }));
+      onUpdated?.();
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
+
+  // Asigna o quita una etiqueta de la tarea; el backend devuelve la lista actualizada.
+  const toggleEtiqueta = async (etiquetaId) => {
+    const has = (task.etiquetas || []).some((te) => te.etiquetaId === etiquetaId);
+    try {
+      const nuevas = has
+        ? await api.removeEtiquetaTarea(taskId, etiquetaId)
+        : await api.addEtiquetaTarea(taskId, etiquetaId);
+      setTask((prev) => ({ ...prev, etiquetas: Array.isArray(nuevas) ? nuevas : prev.etiquetas }));
       onUpdated?.();
     } catch (err) {
       addToast(err.message, 'error');
@@ -570,7 +574,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               <SectionHeader>Comentarios ({comentarios.length})</SectionHeader>
 
               <div className="flex gap-3 mb-6">
-                <UserAvatar name={user?.nombre} />
+                <Avatar user={user} size={28} />
                 <div className="flex-1">
                   <CommentInput
                     value={newComment}
@@ -584,7 +588,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               <div className="space-y-5">
                 {[...comentarios].reverse().map((c) => (
                   <div key={c.id} className="flex gap-3">
-                    <UserAvatar name={c.autor?.nombre || 'U'} muted />
+                    <Avatar user={c.autor} size={28} />
                     <div className="flex-1">
                       <div className="flex items-baseline gap-2.5 mb-1.5">
                         <span className="text-sm font-semibold" style={{ color: 'var(--text)' }}>
@@ -633,18 +637,47 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
             </div>
 
             <div>
+              <PropLabel>Etiquetas</PropLabel>
+              <div className="flex flex-wrap gap-1.5">
+                {etiquetas.map((et) => {
+                  const active = (task.etiquetas || []).some((te) => te.etiquetaId === et.id);
+                  return (
+                    <button
+                      key={et.id}
+                      onClick={() => toggleEtiqueta(et.id)}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all"
+                      style={active
+                        ? { background: `${et.color}22`, color: et.color, boxShadow: `inset 0 0 0 1px ${et.color}` }
+                        : { background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+                      title={active ? 'Quitar etiqueta' : 'Añadir etiqueta'}
+                    >
+                      <span className="w-2 h-2 rounded-full" style={{ background: et.color }} />
+                      {et.nombre}
+                    </button>
+                  );
+                })}
+                {etiquetas.length === 0 && (
+                  <span className="text-[11px]" style={{ color: 'var(--text-faint)' }}>No hay etiquetas</span>
+                )}
+              </div>
+            </div>
+
+            <div>
               <PropLabel>Asignado a</PropLabel>
-              <select
-                value={task.asignadoAId || ''}
-                onChange={(e) => updateTask({ asignadoAId: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
-                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
-              >
-                <option value="">Sin asignar</option>
-                {users.map((u) => (
-                  <option key={u.id} value={u.id}>{u.nombre}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2">
+                {task.asignadoA && <Avatar user={task.asignadoA} size={26} />}
+                <select
+                  value={task.asignadoAId || ''}
+                  onChange={(e) => updateTask({ asignadoAId: e.target.value ? parseInt(e.target.value) : null })}
+                  className="flex-1 min-w-0 rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
+                  style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
+                >
+                  <option value="">Sin asignar</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>{u.nombre}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div>

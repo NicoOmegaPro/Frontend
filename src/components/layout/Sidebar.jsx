@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api';
+import { avatarSrc } from '../../utils/avatar';
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -12,8 +13,6 @@ const NAV_ITEMS = [
   { to: '/equipos',   icon: Users,           label: 'Equipos'   },
   { to: '/profile',   icon: User,            label: 'Mi Perfil' },
 ];
-
-const API_BASE = 'http://localhost:3000';
 
 export default function Sidebar({ collapsed, setCollapsed }) {
   const { user, logout } = useAuth();
@@ -35,7 +34,9 @@ export default function Sidebar({ collapsed, setCollapsed }) {
     <aside
       className="flex flex-col h-screen flex-shrink-0"
       style={{
-        background: 'var(--sidebar-bg)',
+        background: 'color-mix(in srgb, var(--bg-elev) 80%, transparent)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
         width: collapsed ? '72px' : '256px',
         borderRight: '1px solid var(--border)',
         transition: 'width .22s cubic-bezier(.16,1,.3,1)',
@@ -129,7 +130,7 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           >
             {user.imagenPerfil ? (
               <img
-                src={`${API_BASE}${user.imagenPerfil}`}
+                src={avatarSrc(user.imagenPerfil)}
                 alt={user.nombre}
                 className="w-7 h-7 rounded-full object-cover flex-shrink-0"
               />

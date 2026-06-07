@@ -36,7 +36,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
       {/* Brand panel */}
       <div
-        className="hidden lg:flex flex-col justify-between w-[46%] p-12 relative overflow-hidden"
+        className="hidden lg:flex flex-col justify-between w-[46%] p-14 relative overflow-hidden"
         style={{ borderRight: '1px solid var(--border)' }}
       >
         <div
@@ -57,35 +57,35 @@ export default function LoginPage() {
         <div />
 
         <div className="relative">
-          <div className="flex items-center gap-5 mb-8">
+          <div className="flex items-center gap-6 mb-10">
             <img
               src="/logo.png"
               alt="Noir"
-              className="h-44 w-auto object-contain"
+              className="h-52 w-auto object-contain"
               style={{ filter: 'drop-shadow(0 10px 40px var(--ring))' }}
             />
-            <span className="text-[52px] font-bold tracking-tight leading-none" style={{ color: 'var(--text)' }}>Noir</span>
+            <span className="text-[64px] font-bold tracking-tight leading-none" style={{ color: 'var(--text)' }}>Noir</span>
           </div>
-          <h2 className="text-[40px] font-bold leading-[1.1] tracking-tight" style={{ color: 'var(--text)' }}>
+          <h2 className="text-[48px] font-bold leading-[1.1] tracking-tight" style={{ color: 'var(--text)' }}>
             El trabajo de tu equipo,<br />
             <span style={{ color: 'var(--text-faint)' }}>sin fricción.</span>
           </h2>
-          <p className="mt-4 text-[15px] max-w-sm" style={{ color: 'var(--text-muted)' }}>
+          <p className="mt-5 text-[17px] max-w-md" style={{ color: 'var(--text-muted)' }}>
             Gestión de proyectos colaborativa, diseñada para moverse rápido.
           </p>
 
-          <div className="mt-10 space-y-1">
+          <div className="mt-12 space-y-1.5">
             {FEATURES.map(({ icon: Icon, title, text }) => (
-              <div key={title} className="flex items-start gap-3.5 p-3 rounded-xl transition-colors hover:bg-[var(--bg-secondary)]">
+              <div key={title} className="flex items-start gap-4 p-3.5 rounded-xl transition-colors hover:bg-[var(--bg-secondary)]">
                 <span
-                  className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                  className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
                   style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border)', color: 'var(--primary-hover)' }}
                 >
-                  <Icon size={17} />
+                  <Icon size={20} />
                 </span>
                 <div>
-                  <p className="text-[13.5px] font-semibold" style={{ color: 'var(--text)' }}>{title}</p>
-                  <p className="text-[12.5px]" style={{ color: 'var(--text-muted)' }}>{text}</p>
+                  <p className="text-[15px] font-semibold" style={{ color: 'var(--text)' }}>{title}</p>
+                  <p className="text-[14px]" style={{ color: 'var(--text-muted)' }}>{text}</p>
                 </div>
               </div>
             ))}
@@ -99,30 +99,30 @@ export default function LoginPage() {
 
       {/* Form panel */}
       <div className="flex-1 flex items-center justify-center p-6">
-        <div className="w-full max-w-[380px] fade-up">
+        <div className="w-full max-w-[460px] fade-up">
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <img src="/logo.png" alt="Noir" className="h-10 w-auto object-contain" />
-            <span className="text-[26px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Noir</span>
+            <img src="/logo.png" alt="Noir" className="h-12 w-auto object-contain" />
+            <span className="text-[30px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Noir</span>
           </div>
 
-          <h1 className="text-[26px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Bienvenido de nuevo</h1>
-          <p className="text-[14px] mt-1.5 mb-8" style={{ color: 'var(--text-muted)' }}>Inicia sesión para continuar</p>
+          <h1 className="text-[34px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Bienvenido de nuevo</h1>
+          <p className="text-[16px] mt-2 mb-10" style={{ color: 'var(--text-muted)' }}>Inicia sesión para continuar</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-[12.5px] font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Correo electrónico</label>
+              <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Correo electrónico</label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="tu@email.com"
-                className="input-field w-full px-3.5 py-2.5 text-[14px]"
+                className="input-field w-full px-4 py-3.5 text-[15px]"
               />
             </div>
 
             <div>
-              <label className="block text-[12.5px] font-medium mb-1.5" style={{ color: 'var(--text-muted)' }}>Contraseña</label>
+              <label className="block text-[14px] font-medium mb-2" style={{ color: 'var(--text-muted)' }}>Contraseña</label>
               <div className="relative">
                 <input
                   type={showPwd ? 'text' : 'password'}
@@ -130,25 +130,25 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="••••••••"
-                  className="input-field w-full px-3.5 py-2.5 text-[14px] pr-11"
+                  className="input-field w-full px-4 py-3.5 text-[15px] pr-12"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPwd(!showPwd)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2"
                   style={{ color: 'var(--text-faint)' }}
                 >
-                  {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPwd ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="btn btn-primary w-full !py-2.5 mt-2 group">
-              {loading ? 'Iniciando sesión...' : (<>Iniciar sesión <ArrowRight size={16} className="transition-transform group-hover:translate-x-0.5" /></>)}
+            <button type="submit" disabled={loading} className="btn btn-primary w-full !py-3.5 !text-[15px] mt-2 group">
+              {loading ? 'Iniciando sesión...' : (<>Iniciar sesión <ArrowRight size={18} className="transition-transform group-hover:translate-x-0.5" /></>)}
             </button>
           </form>
 
-          <p className="mt-7 text-center text-[13.5px]" style={{ color: 'var(--text-muted)' }}>
+          <p className="mt-8 text-center text-[15px]" style={{ color: 'var(--text-muted)' }}>
             ¿No tienes cuenta?{' '}
             <Link to="/register" className="font-semibold hover:underline" style={{ color: 'var(--primary-hover)' }}>
               Regístrate

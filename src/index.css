@@ -6,17 +6,16 @@
    Inspired by Linear · Vercel · Raycast.
    ════════════════════════════════════════════════════════════════ */
 
-/* ─── Dark (default identity) ─── */
-:root,
-html.dark {
-  --bg:            #08080A;
-  --bg-elev:       #0C0C0F;   /* sidebar / topbar shell */
-  --bg-secondary:  #161619;   /* inset surfaces, inputs */
-  --card:          #121215;
-  --card-hover:    #18181C;
-  --border:        #222227;
-  --border-strong: #2D2D34;
-  --hairline:      rgba(255,255,255,0.06);
+/* ─── Tema oscuro único ─── */
+:root {
+  --bg:            #09070E;   /* negro con leve tinte violeta */
+  --bg-elev:       #0D0B14;   /* sidebar / topbar shell */
+  --bg-secondary:  #181522;   /* inset surfaces, inputs */
+  --card:          #131019;
+  --card-hover:    #1B1726;
+  --border:        #262130;
+  --border-strong: #322C3F;
+  --hairline:      rgba(180,170,255,0.06);
 
   --text:          #ECECEE;
   --text-muted:    #8B8B94;
@@ -39,38 +38,6 @@ html.dark {
   --shadow-pop:    0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px var(--border);
 }
 
-/* ─── Light (optional, refined neutral) ─── */
-html.light {
-  --bg:            #FAFAFA;
-  --bg-elev:       #FFFFFF;
-  --bg-secondary:  #F1F1F3;
-  --card:          #FFFFFF;
-  --card-hover:    #F6F6F8;
-  --border:        #E6E6EA;
-  --border-strong: #D7D7DE;
-  --hairline:      rgba(0,0,0,0.06);
-
-  --text:          #18181B;
-  --text-muted:    #6B6B76;
-  --text-faint:    #A1A1AC;
-
-  --primary:       #5B61E0;
-  --primary-dark:  #4348C4;
-  --primary-hover: #6E73EC;
-  --primary-soft:  rgba(91,97,224,0.10);
-  --ring:          rgba(91,97,224,0.30);
-
-  --success:       #1A7F37;
-  --warning:       #B7791F;
-  --danger:        #DC2B45;
-
-  --sidebar-bg:    #FFFFFF;
-  --shadow-sm:     0 1px 2px rgba(16,24,40,0.05);
-  --shadow-md:     0 8px 28px rgba(16,24,40,0.10);
-  --shadow-lg:     0 24px 56px rgba(16,24,40,0.16);
-  --shadow-pop:    0 12px 36px rgba(16,24,40,0.14), 0 0 0 1px var(--border);
-}
-
 /* ════════════════════════════════════════
    Base
    ════════════════════════════════════════ */
@@ -81,11 +48,6 @@ html { background: var(--bg); }
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   background-color: var(--bg);
-  background-image: url('/Background.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: fixed;
   color: var(--text);
   margin: 0;
   font-size: 14px;
@@ -95,6 +57,56 @@ body {
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: 'cv02','cv03','cv04','cv11';
   transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* ─── Fondo ambiental: negro ↔ morado hecho en CSS (sin imagen) ───
+   Dos capas de auras violeta que cruzan su intensidad (cuando una sube,
+   la otra baja) -> el lienzo "cambia de color" entre morado fuerte y suave,
+   evocando el logo, sin llegar a un wallpaper recargado.               */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: -12vmax;            /* margen extra para que el scale nunca muestre bordes */
+  z-index: -1;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* Capa A — morados intensos en esquinas opuestas. */
+body::before {
+  background:
+    radial-gradient(40% 38% at 16% 10%, rgba(139,92,246,0.40), transparent 66%),
+    radial-gradient(46% 42% at 88% 90%, rgba(124,58,237,0.36), transparent 68%),
+    radial-gradient(34% 32% at 94% 14%, rgba(110,118,241,0.24), transparent 70%);
+  filter: saturate(122%);
+  animation: auraA 22s ease-in-out infinite alternate;
+}
+
+/* Capa B — morados más profundos/suaves, desfasada: aporta el cambio de tono. */
+body::after {
+  background:
+    radial-gradient(44% 40% at 10% 88%, rgba(168,85,247,0.30), transparent 68%),
+    radial-gradient(40% 36% at 82% 26%, rgba(76,29,149,0.40), transparent 70%),
+    radial-gradient(30% 30% at 48% 52%, rgba(110,118,241,0.16), transparent 74%);
+  filter: saturate(118%);
+  animation: auraB 29s ease-in-out infinite alternate;
+}
+
+/* Intensidades opuestas: cuando A está fuerte, B está flojo y viceversa. */
+@keyframes auraA {
+  0%   { transform: translate3d(0, 0, 0) scale(1);       opacity: 0.55; }
+  50%  { transform: translate3d(2%, -1.5%, 0) scale(1.08); opacity: 1;    }
+  100% { transform: translate3d(-1.5%, 2%, 0) scale(1.04); opacity: 0.7;  }
+}
+@keyframes auraB {
+  0%   { transform: translate3d(0, 0, 0) scale(1.06);    opacity: 0.95; }
+  50%  { transform: translate3d(-2%, 1.5%, 0) scale(1);    opacity: 0.4;  }
+  100% { transform: translate3d(1.5%, -1%, 0) scale(1.08); opacity: 0.85; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after { animation: none; }
 }
 
 h1, h2, h3, h4 { letter-spacing: -0.02em; }

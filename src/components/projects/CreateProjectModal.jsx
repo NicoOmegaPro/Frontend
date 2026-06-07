@@ -1,25 +1,15 @@
 import { useState, useEffect } from 'react';
-import { X, Crown } from 'lucide-react';
+import { X, Users } from 'lucide-react';
 import { api } from '../../api';
 import { useToast } from '../../context/ToastContext';
-import { useAuth } from '../../context/AuthContext';
 
 const inp =
   'input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm text-[#172B4D] placeholder-[#B3BAC5] bg-white';
 
-const ROL_OPTIONS = [
-  { value: 'TRABAJADOR', label: 'Trabajador' },
-  { value: 'SUPERVISOR', label: 'Supervisor' },
-  { value: 'JEFE_PROYECTO', label: 'Jefe de Proyecto' },
-];
-
 export default function CreateProjectModal({ onClose, onCreated }) {
   const { addToast } = useToast();
-  const { user } = useAuth();
   const [equipos, setEquipos] = useState([]);
   const [form, setForm] = useState({ nombre: '', descripcion: '', equipoId: '' });
-  // Mapa usuarioId -> rol de proyecto, para los miembros (sin contar al creador).
-  const [roles, setRoles] = useState({});
   const [loading, setLoading] = useState(false);
 
   // Solo se pueden crear proyectos en equipos donde soy Jefe de Equipo.
@@ -33,12 +23,10 @@ export default function CreateProjectModal({ onClose, onCreated }) {
   }, []);
 
   const equipoSel = equipos.find((e) => e.id === parseInt(form.equipoId));
-  // Miembros del equipo distintos del creador (al creador lo asignamos como Jefe de Proyecto).
-  const otrosMiembros = (equipoSel?.usuarios || []).filter((m) => m.usuarioId !== user?.id);
+  // Todos los miembros del equipo participan en el proyecto con su rol de equipo.
+  const miembrosEquipo = equipoSel?.usuarios || [];
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
-
-  const setRol = (usuarioId, rol) => setRoles((prev) => ({ ...prev, [usuarioId]: rol }));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,15 +37,10 @@ export default function CreateProjectModal({ onClose, onCreated }) {
     }
     setLoading(true);
     try {
-      const miembros = otrosMiembros.map((m) => ({
-        usuarioId: m.usuarioId,
-        rol: roles[m.usuarioId] || 'TRABAJADOR',
-      }));
       await api.createProject({
         nombre: form.nombre,
         descripcion: form.descripcion || undefined,
         equipoId: parseInt(form.equipoId),
-        miembros,
       });
       addToast('Proyecto creado correctamente', 'success');
       onCreated();
@@ -135,48 +118,21 @@ export default function CreateProjectModal({ onClose, onCreated }) {
               </select>
             </div>
 
-            {/* Asignación de roles del proyecto a los miembros del equipo */}
+            {/* Los miembros (y sus roles) salen del equipo seleccionado */}
             {equipoSel && (
               <div>
-                <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-2">
-                  Roles del proyecto
+                <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <Users size={12} /> Miembros del equipo ({miembrosEquipo.length})
                 </label>
-                <div className="space-y-2">
-                  {/* El creador es siempre Jefe de Proyecto */}
-                  <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg bg-[#F4F5F7]">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#172B4D] truncate">
-                        {user?.nombre} <span className="text-xs text-[#6B778C]">(tú)</span>
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full" style={{ background: 'rgba(90,156,248,.15)', color: '#5a9cf8' }}>
-                      <Crown size={11} /> Jefe de Proyecto
+                <p className="text-xs text-[#6B778C] mb-2">
+                  Todos los miembros del equipo participan en el proyecto con su rol de equipo (Jefe, Supervisor o Miembro). Los roles se gestionan desde <strong>Equipos</strong>.
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {miembrosEquipo.map((m) => (
+                    <span key={m.usuarioId} className="text-xs px-2 py-1 rounded-full bg-[#F4F5F7] text-[#172B4D]">
+                      {m.usuario?.nombre}
                     </span>
-                  </div>
-
-                  {otrosMiembros.length === 0 ? (
-                    <p className="text-xs text-[#6B778C]">
-                      Este equipo todavía no tiene más miembros. Invita compañeros desde la sección Equipos.
-                    </p>
-                  ) : (
-                    otrosMiembros.map((m) => (
-                      <div key={m.usuarioId} className="flex items-center justify-between gap-3 p-2.5 rounded-lg border border-[#DFE1E6]">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium text-[#172B4D] truncate">{m.usuario?.nombre}</p>
-                          <p className="text-xs text-[#6B778C] truncate">{m.usuario?.email}</p>
-                        </div>
-                        <select
-                          value={roles[m.usuarioId] || 'TRABAJADOR'}
-                          onChange={(e) => setRol(m.usuarioId, e.target.value)}
-                          className="text-xs border border-[#DFE1E6] rounded-lg px-2 py-1.5 input-field bg-white text-[#172B4D] flex-shrink-0"
-                        >
-                          {ROL_OPTIONS.map((o) => (
-                            <option key={o.value} value={o.value}>{o.label}</option>
-                          ))}
-                        </select>
-                      </div>
-                    ))
-                  )}
+                  ))}
                 </div>
               </div>
             )}
