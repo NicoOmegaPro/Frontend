@@ -22,7 +22,7 @@ import {
   BarElement,
 } from 'chart.js';
 
-import { roundLegend, pointerOnHover } from '../../utils/chartConfig';
+import { pointerOnHover, centerTextPlugin, statusDoughnutDataset, statusDoughnutOptions } from '../../utils/chartConfig';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -63,6 +63,7 @@ export default function ProjectDetailPage() {
   const [sprints, setSprints] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const [activeStatus, setActiveStatus] = useState(null);
   const [selectedSprint, setSelectedSprint] = useState('ALL');
   const [searchFilter, setSearchFilter] = useState('');
   const [prioridadFilter, setPrioridadFilter] = useState('ALL');
@@ -190,31 +191,20 @@ export default function ProjectDetailPage() {
 
   const statusDoughnutData = {
     labels: ['Pendiente', 'En progreso', 'En revisión', 'Finalizado'],
-    datasets: [{
-      data: [
-        tasks.filter((t) => t.estado === 'PENDIENTE').length,
-        tasks.filter((t) => t.estado === 'EN_PROGRESO').length,
-        tasks.filter((t) => t.estado === 'EN_REVISION').length,
-        tasks.filter((t) => t.estado === 'FINALIZADO').length,
-      ],
-      backgroundColor: ['#8B8B94', '#6E76F1', '#E0A82E', '#3FB950'],
-      borderWidth: 0,
-      hoverOffset: 4,
-    }],
+    datasets: [
+      statusDoughnutDataset(
+        [
+          tasks.filter((t) => t.estado === 'PENDIENTE').length,
+          tasks.filter((t) => t.estado === 'EN_PROGRESO').length,
+          tasks.filter((t) => t.estado === 'EN_REVISION').length,
+          tasks.filter((t) => t.estado === 'FINALIZADO').length,
+        ],
+        activeStatus
+      ),
+    ],
   };
 
-  const statusDoughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '58%',
-    onHover: pointerOnHover,
-    plugins: {
-      legend: roundLegend(CHART_TICK, 13),
-      tooltip: {
-        callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}` },
-      },
-    },
-  };
+  const statusDoughnutOpts = statusDoughnutOptions(activeStatus, setActiveStatus, 'Tareas', '95%');
 
   if (loading) {
     return (
@@ -411,7 +401,7 @@ export default function ProjectDetailPage() {
           <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
             <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por estado</p>
             <div style={{ height: 230 }}>
-              <Doughnut data={statusDoughnutData} options={statusDoughnutOptions} />
+              <Doughnut data={statusDoughnutData} options={statusDoughnutOpts} plugins={[centerTextPlugin]} />
             </div>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { FolderKanban, CheckSquare, Clock, AlertCircle, TrendingUp, Activity } from 'lucide-react';
+import { FolderKanban, FilePlus2, CalendarClock, AlertCircle, TrendingUp, Activity, CheckSquare } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { api } from '../../api';
 import { formatDistanceToNow } from 'date-fns';
@@ -16,7 +16,7 @@ import {
   BarElement,
 } from 'chart.js';
 
-import { roundLegend, pointerOnHover, CHART_GRID, CHART_TICK } from '../../utils/chartConfig';
+import { pointerOnHover, CHART_GRID, CHART_TICK, centerTextPlugin, statusDoughnutDataset, statusDoughnutOptions } from '../../utils/chartConfig';
 import Pagination, { useClientPagination } from '../common/Pagination';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
@@ -92,6 +92,7 @@ export default function DashboardPage() {
   const [tasks, setTasks] = useState([]);
   const [historial, setHistorial] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeStatus, setActiveStatus] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -108,13 +109,37 @@ export default function DashboardPage() {
   const myTasks = tasks.filter((t) => t.asignadoAId === user?.id);
   const enProgresoTasks = tasks.filter((t) => t.estado === 'EN_PROGRESO');
   const finalizadasTasks = tasks.filter((t) => t.estado === 'FINALIZADO');
+
+  // Ventana de 7 días para "creadas recientemente" y "vencen pronto" (estilo Jira).
+  const now = Date.now();
+  const WEEK = 7 * 24 * 60 * 60 * 1000;
+  const creadasRecientes = tasks.filter((t) => {
+    if (!t.createdAt) return false;
+    const c = new Date(t.createdAt).getTime();
+    return c <= now && now - c <= WEEK;
+  });
+  const vencenPronto = tasks.filter((t) => {
+    if (!t.fechaVencimiento || t.estado === 'FINALIZADO') return false;
+    const v = new Date(t.fechaVencimiento).getTime();
+    return v >= now && v - now <= WEEK;
+  });
+
   const tasksByStatus = {
     PENDIENTE: tasks.filter((t) => t.estado === 'PENDIENTE').length,
     EN_PROGRESO: enProgresoTasks.length,
     EN_REVISION: tasks.filter((t) => t.estado === 'EN_REVISION').length,
     FINALIZADO: finalizadasTasks.length,
   };
-  const activeProjects = projects.filter((p) => p.estado === 'ACTIVO').length;
+  const activeProjectsList = projects.filter((p) => p.estado === 'ACTIVO');
+  const activeProjects = activeProjectsList.length;
+
+  // Tareas urgentes (no finalizadas) asignadas a ti o a nadie; las de otros no cuentan.
+  const tareasUrgentes = tasks.filter(
+    (t) =>
+      t.prioridad === 'URGENTE' &&
+      t.estado !== 'FINALIZADO' &&
+      (t.asignadoAId == null || t.asignadoAId === user?.id)
+  );
 
   const projectsSlice = projects.slice(0, 6);
 
@@ -124,28 +149,15 @@ export default function DashboardPage() {
 
   const taskDoughnutData = {
     labels: ['Pendiente', 'En progreso', 'En revisión', 'Finalizado'],
-    datasets: [{
-      data: [tasksByStatus.PENDIENTE, tasksByStatus.EN_PROGRESO, tasksByStatus.EN_REVISION, tasksByStatus.FINALIZADO],
-      backgroundColor: ['#8B8B94', '#6E76F1', '#E0A82E', '#3FB950'],
-      borderWidth: 0,
-      hoverOffset: 6,
-    }],
+    datasets: [
+      statusDoughnutDataset(
+        [tasksByStatus.PENDIENTE, tasksByStatus.EN_PROGRESO, tasksByStatus.EN_REVISION, tasksByStatus.FINALIZADO],
+        activeStatus
+      ),
+    ],
   };
 
-  const doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    cutout: '62%',
-    onHover: pointerOnHover,
-    layout: { padding: { top: 8, bottom: 4, left: 10, right: 10 } },
-    radius: '82%',
-    plugins: {
-      legend: roundLegend('#c9ccd4', 14),
-      tooltip: {
-        callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw} tarea${ctx.raw !== 1 ? 's' : ''}` },
-      },
-    },
-  };
+  const doughnutOptions = statusDoughnutOptions(activeStatus, setActiveStatus);
 
   const projectBarData = {
     labels: projectsSlice.map((p) => p.nombre.length > 16 ? p.nombre.slice(0, 16) + '…' : p.nombre),
@@ -209,53 +221,57 @@ export default function DashboardPage() {
           value={activeProjects}
           sub={null}
           color="#6E76F1"
+          items={activeProjectsList.map((p) => ({ id: p.id, titulo: p.nombre }))}
+          onItemClick={(p) => navigate(`/projects/${p.id}`)}
         />
         <StatCard
-          icon={Clock}
-          label="Tareas en progreso"
-          value={tasksByStatus.EN_PROGRESO}
-          sub={null}
-          color="#E0A82E"
-          items={enProgresoTasks}
+          icon={FilePlus2}
+          label="Tareas creadas"
+          value={creadasRecientes.length}
+          sub="en los últimos 7 días"
+          color="#3FB950"
+          items={creadasRecientes}
           onItemClick={(t) => navigate(`/projects/${t.proyectoId}`)}
         />
         <StatCard
-          icon={CheckSquare}
-          label="Tareas finalizadas"
-          value={tasksByStatus.FINALIZADO}
-          sub={`${tasks.length} tareas en total`}
-          color="#3FB950"
-          items={finalizadasTasks}
+          icon={CalendarClock}
+          label="Vencen pronto"
+          value={vencenPronto.length}
+          sub="en los próximos 7 días"
+          color="#E0A82E"
+          items={vencenPronto}
           onItemClick={(t) => navigate(`/projects/${t.proyectoId}`)}
         />
         <StatCard
           icon={AlertCircle}
-          label="Mis tareas"
-          value={myTasks.length}
-          sub="asignadas a ti"
+          label="Tareas urgentes"
+          value={tareasUrgentes.length}
+          sub="asignadas a ti o sin asignar"
           color="#F0556B"
+          items={tareasUrgentes}
+          onItemClick={(t) => navigate(`/projects/${t.proyectoId}`)}
         />
       </div>
 
       {/* Charts + lists row */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Doughnut */}
-        <div className="rounded-2xl border p-4 flex flex-col" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="rounded-2xl border p-4 flex flex-col overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)', height: 420 }}>
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp size={15} style={{ color: 'var(--primary)' }} />
-            <h2 className="font-semibold text-[14px]" style={{ color: 'var(--text)' }}>Estado de tareas</h2>
+            <h2 className="font-semibold text-[14px]" style={{ color: 'var(--text)' }}>Resumen de estado</h2>
           </div>
           {tasks.length === 0 ? (
             <p className="text-[13px] text-center py-8" style={{ color: 'var(--text-muted)' }}>Sin tareas registradas</p>
           ) : (
             <div className="flex-1 min-h-0" style={{ minHeight: 220 }}>
-              <Doughnut data={taskDoughnutData} options={doughnutOptions} />
+              <Doughnut data={taskDoughnutData} options={doughnutOptions} plugins={[centerTextPlugin]} />
             </div>
           )}
         </div>
 
         {/* My tasks */}
-        <div className="rounded-2xl border p-4" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="rounded-2xl border p-4 flex flex-col overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)', height: 420 }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <CheckSquare size={15} style={{ color: 'var(--primary)' }} />
@@ -271,7 +287,7 @@ export default function DashboardPage() {
             </p>
           ) : (
             <>
-              <div className="space-y-1.5">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5 pr-1">
                 {myTasksPg.pageItems.map((t) => (
                   <div
                     key={t.id}
@@ -295,13 +311,13 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <Pagination page={myTasksPg.page} pages={myTasksPg.pages} onChange={myTasksPg.setPage} />
+              <Pagination page={myTasksPg.page} pages={myTasksPg.pages} onChange={myTasksPg.setPage} className="flex-shrink-0" />
             </>
           )}
         </div>
 
         {/* Activity feed */}
-        <div className="rounded-2xl border p-4 flex flex-col" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="rounded-2xl border p-4 flex flex-col overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)', height: 420 }}>
           <div className="flex items-center gap-2 mb-3">
             <Activity size={15} style={{ color: 'var(--primary)' }} />
             <h2 className="font-semibold text-[14px]" style={{ color: 'var(--text)' }}>Actividad reciente</h2>
@@ -310,7 +326,7 @@ export default function DashboardPage() {
             <p className="text-[13px] text-center py-6" style={{ color: 'var(--text-muted)' }}>Sin actividad reciente</p>
           ) : (
             <>
-              <div className="flex-1 space-y-2">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
                 {activityPg.pageItems.map((h) => (
                   <div key={h.id} className="flex gap-2 items-start">
                     <span className="text-[14px] flex-shrink-0 mt-0.5">{ACCION_ICON[h.accion] || '📌'}</span>
@@ -326,7 +342,7 @@ export default function DashboardPage() {
                   </div>
                 ))}
               </div>
-              <Pagination page={activityPg.page} pages={activityPg.pages} onChange={activityPg.setPage} />
+              <Pagination page={activityPg.page} pages={activityPg.pages} onChange={activityPg.setPage} className="flex-shrink-0" />
             </>
           )}
         </div>

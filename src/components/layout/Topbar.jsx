@@ -17,7 +17,7 @@ const PAGE_TITLES = [
   { match: '/users',     title: 'Perfil'    },
 ];
 
-export default function Topbar() {
+export default function Topbar({ collapsed = false }) {
   const { user } = useAuth();
   const { dark, toggle } = useTheme();
   const navigate = useNavigate();
@@ -67,7 +67,24 @@ export default function Topbar() {
         height: '60px',
       }}
     >
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center min-w-0">
+        {/* Marca Noir: se desliza al header cuando el sidebar está colapsado */}
+        <div
+          className="flex items-center overflow-hidden"
+          style={{
+            maxWidth: collapsed ? '160px' : '0px',
+            opacity: collapsed ? 1 : 0,
+            transform: collapsed ? 'translateX(0)' : 'translateX(-10px)',
+            transition: 'max-width .3s cubic-bezier(.16,1,.3,1), opacity .25s ease, transform .3s cubic-bezier(.16,1,.3,1)',
+            pointerEvents: collapsed ? 'auto' : 'none',
+          }}
+        >
+          <img src="/logo.png" alt="Noir" className="h-7 w-auto object-contain flex-shrink-0" />
+          <span className="font-semibold text-[15px] tracking-tight ml-2" style={{ color: 'var(--text)' }}>
+            Noir
+          </span>
+          <span className="mx-3 h-5 w-px flex-shrink-0" style={{ background: 'var(--border)' }} />
+        </div>
         <h1 className="text-[15px] font-semibold tracking-tight truncate" style={{ color: 'var(--text)' }}>
           {pageTitle}
         </h1>

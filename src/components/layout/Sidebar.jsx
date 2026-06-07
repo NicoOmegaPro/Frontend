@@ -15,11 +15,10 @@ const NAV_ITEMS = [
 
 const API_BASE = 'http://localhost:3000';
 
-export default function Sidebar() {
+export default function Sidebar({ collapsed, setCollapsed }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [projects, setProjects] = useState([]);
-  const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
     api.getProjects()

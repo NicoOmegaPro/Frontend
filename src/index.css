@@ -80,7 +80,12 @@ html { background: var(--bg); }
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image: url('/Background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text);
   margin: 0;
   font-size: 14px;
