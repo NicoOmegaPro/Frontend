@@ -28,7 +28,6 @@ export default function KanbanBoard({
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
 
-  // Group subtareas and comentarios by tareaId
   const subtareasByTask = subtareas.reduce((acc, s) => {
     if (!acc[s.tareaId]) acc[s.tareaId] = [];
     acc[s.tareaId].push(s);
@@ -55,7 +54,6 @@ export default function KanbanBoard({
     if (!task) return;
     if (task.estado === targetStatus) return;
 
-    // Solo jefe de equipo o supervisor pueden mover a FINALIZADO.
     if (targetStatus === 'FINALIZADO' && !['JEFE_EQUIPO', 'SUPERVISOR'].includes(myTeamRole)) return;
 
     if (targetStatus === 'FINALIZADO') {

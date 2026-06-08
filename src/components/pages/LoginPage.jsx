@@ -34,7 +34,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
-      {/* Brand panel */}
+      {}
       <div
         className="hidden lg:flex flex-col justify-between w-[46%] p-14 relative overflow-hidden"
         style={{ borderRight: '1px solid var(--border)' }}
@@ -97,7 +97,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Form panel */}
+      {}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-[460px] fade-up">
           <div className="lg:hidden flex items-center gap-3 mb-10">

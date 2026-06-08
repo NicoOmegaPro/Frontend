@@ -130,10 +130,10 @@ export default function ProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-        {/* ── Left column ── */}
+        {}
         <div className="space-y-5">
 
-          {/* Avatar */}
+          {}
           <SectionCard>
             <div className="flex flex-col items-center text-center gap-4">
               <div className="relative group">
@@ -189,7 +189,7 @@ export default function ProfilePage() {
             </div>
           </SectionCard>
 
-          {/* Teams */}
+          {}
           {equipos.length > 0 && (
             <SectionCard title="Mis equipos" icon={Users}>
               <div className="space-y-2">
@@ -231,7 +231,7 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* ── Right column ── */}
+        {}
         <div className="lg:col-span-2">
           <SectionCard title="Información personal" icon={User}>
             <form onSubmit={handleSave} className="space-y-5">
@@ -291,10 +291,10 @@ export default function ProfilePage() {
               </button>
             </form>
 
-            {/* Divider */}
+            {}
             <div className="my-7" style={{ borderTop: '1px solid var(--border)' }} />
 
-            {/* Password section */}
+            {}
             <h2 className="font-semibold text-[15px] flex items-center gap-2.5 mb-6" style={{ color: 'var(--text)' }}>
               <Lock size={17} style={{ color: 'var(--primary)' }} />
               Cambiar contraseña

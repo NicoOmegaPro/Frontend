@@ -65,7 +65,7 @@ export default function Topbar({ collapsed = false }) {
       }}
     >
       <div className="flex items-center min-w-0">
-        {/* Marca Noir: se desliza al header cuando el sidebar está colapsado */}
+        {}
         <div
           className="flex items-center overflow-hidden"
           style={{
@@ -88,7 +88,7 @@ export default function Topbar({ collapsed = false }) {
       </div>
 
       <div className="flex items-center gap-1.5">
-        {/* Notifications */}
+        {}
         <div ref={ref} className="relative">
           <button onClick={() => setShowNotifs(!showNotifs)} className="icon-btn relative">
             <Bell size={17} />
@@ -199,7 +199,7 @@ export default function Topbar({ collapsed = false }) {
           )}
         </div>
 
-        {/* User */}
+        {}
         {user && (
           <button
             onClick={() => navigate('/profile')}

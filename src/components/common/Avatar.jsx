@@ -1,7 +1,5 @@
 import { avatarSrc } from '../../utils/avatar';
 
-// Avatar de usuario: muestra su foto de perfil si existe; si no, la inicial del nombre.
-// Úsalo en TODOS los sitios donde aparezca un usuario para mantener coherencia.
 export default function Avatar({ user, size = 28, className = '', title, ring = false }) {
   const src = avatarSrc(user?.imagenPerfil);
   const nombre = user?.nombre || '';

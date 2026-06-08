@@ -89,10 +89,10 @@ export default function UserProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-        {/* ── Left column ── */}
+        {}
         <div className="space-y-5">
 
-          {/* Avatar card */}
+          {}
           <SectionCard>
             <div className="flex flex-col items-center text-center gap-4">
               {profile.imagenPerfil ? (
@@ -126,7 +126,7 @@ export default function UserProfilePage() {
             </div>
           </SectionCard>
 
-          {/* Teams */}
+          {}
           {equipos.length > 0 && (
             <SectionCard title="Equipos" icon={Users}>
               <div className="space-y-2">
@@ -162,7 +162,7 @@ export default function UserProfilePage() {
           )}
         </div>
 
-        {/* ── Right column ── */}
+        {}
         <div className="lg:col-span-2">
           <SectionCard title="Información personal" icon={User}>
             <div className="space-y-5">

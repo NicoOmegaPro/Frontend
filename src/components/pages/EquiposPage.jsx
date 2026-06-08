@@ -10,7 +10,6 @@ import { useToast } from '../../context/ToastContext';
 import Pagination, { useClientPagination } from '../common/Pagination';
 import { avatarSrc } from '../../utils/avatar';
 
-// Único nivel de rol: el del equipo. El jefe puede ascender miembros a Supervisor.
 const ROL_META = {
   JEFE_EQUIPO: { label: 'Jefe de Equipo', icon: Crown,    color: '#f5a623', bg: 'rgba(245,166,35,.15)' },
   SUPERVISOR:  { label: 'Supervisor',     icon: Shield,   color: '#a78bfa', bg: 'rgba(167,139,250,.15)' },
@@ -42,7 +41,6 @@ function Avatar({ user }) {
   );
 }
 
-/* ─── Modal crear equipo ─── */
 function CreateEquipoModal({ onClose, onCreated }) {
   const { addToast } = useToast();
   const [form, setForm] = useState({ nombre: '', descripcion: '' });
@@ -111,7 +109,6 @@ function CreateEquipoModal({ onClose, onCreated }) {
   );
 }
 
-/* ─── Panel de un equipo ─── */
 function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
   const { addToast } = useToast();
   const navigate = useNavigate();
@@ -198,7 +195,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
 
   return (
     <div ref={cardRef} className="rounded-2xl border overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
-      {/* Header del equipo */}
+      {}
       <div className="p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -264,7 +261,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
           </div>
         </div>
 
-        {/* Mini avatars */}
+        {}
         {!expanded && equipo.usuarios?.length > 0 && (
           <div className="flex items-center gap-1 mt-3 pl-1">
             {equipo.usuarios.slice(0, 8).map((m) => (
@@ -285,7 +282,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
         )}
       </div>
 
-      {/* Formulario de invitar */}
+      {}
       {showInvite && (
         <div className="px-5 pb-4 border-t" style={{ borderColor: 'var(--border)' }}>
           <p className="text-xs font-bold uppercase tracking-widest mt-4 mb-3" style={{ color: 'var(--text-muted)' }}>Invitar miembro por email</p>
@@ -314,7 +311,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
         </div>
       )}
 
-      {/* Lista de miembros (expanded) */}
+      {}
       {expanded && (
         <div className="border-t" style={{ borderColor: 'var(--border)' }}>
           <div className="p-6 space-y-2">
@@ -340,7 +337,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
                     <p className="text-[12px]" style={{ color: 'var(--text-muted)' }}>{m.usuario?.email}</p>
                   </div>
 
-                  {/* Rol: editable por el jefe (Supervisor/Miembro), si no badge */}
+                  {}
                   {isJefe && !isMe && !isJefeTarget ? (
                     <select
                       value={m.rol === 'SUPERVISOR' ? 'SUPERVISOR' : 'MIEMBRO'}
@@ -357,7 +354,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
                     <RolBadge rol={m.rol} />
                   )}
 
-                  {/* Expulsar */}
+                  {}
                   {isJefe && !isMe && !isJefeTarget && (
                     <button
                       onClick={(e) => { e.stopPropagation(); handleExpulsar(m.usuarioId, m.usuario?.nombre); }}
@@ -374,7 +371,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
             <Pagination page={membersPg.page} pages={membersPg.pages} onChange={membersPg.setPage} />
           </div>
 
-          {/* Proyectos del equipo */}
+          {}
           {equipo.proyectos?.length > 0 && (
             <div className="px-5 pb-5">
               <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'var(--text-muted)' }}>
@@ -396,7 +393,7 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
             </div>
           )}
 
-          {/* Eliminar equipo (solo JEFE_EQUIPO) */}
+          {}
           {isJefe && (
             <div className="px-5 pb-5 pt-2 border-t" style={{ borderColor: 'var(--border)' }}>
               <button
@@ -414,9 +411,6 @@ function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }) {
   );
 }
 
-/* ════════════════════════════════════════
-   PÁGINA PRINCIPAL
-   ════════════════════════════════════════ */
 export default function EquiposPage() {
   const { user } = useAuth();
   const location = useLocation();
@@ -455,7 +449,7 @@ export default function EquiposPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Mis Equipos</h1>
@@ -474,7 +468,7 @@ export default function EquiposPage() {
         </button>
       </div>
 
-      {/* Equipos list */}
+      {}
       {equipos.length === 0 ? (
         <div className="text-center py-20 rounded-2xl border" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
           <Users size={48} className="mx-auto mb-4 opacity-20" style={{ color: 'var(--text)' }} />

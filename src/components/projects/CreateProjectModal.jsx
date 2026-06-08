@@ -12,7 +12,6 @@ export default function CreateProjectModal({ onClose, onCreated }) {
   const [form, setForm] = useState({ nombre: '', descripcion: '', equipoId: '' });
   const [loading, setLoading] = useState(false);
 
-  // Solo se pueden crear proyectos en equipos donde soy Jefe de Equipo.
   useEffect(() => {
     api.getEquipos()
       .then((data) => {
@@ -23,7 +22,6 @@ export default function CreateProjectModal({ onClose, onCreated }) {
   }, []);
 
   const equipoSel = equipos.find((e) => e.id === parseInt(form.equipoId));
-  // Todos los miembros del equipo participan en el proyecto con su rol de equipo.
   const miembrosEquipo = equipoSel?.usuarios || [];
 
   const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -118,7 +116,7 @@ export default function CreateProjectModal({ onClose, onCreated }) {
               </select>
             </div>
 
-            {/* Los miembros (y sus roles) salen del equipo seleccionado */}
+            {}
             {equipoSel && (
               <div>
                 <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-2 flex items-center gap-1.5">

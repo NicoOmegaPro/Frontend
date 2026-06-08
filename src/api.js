@@ -8,7 +8,6 @@ function getHeaders() {
   };
 }
 
-// Construye un query string a partir de un objeto, ignorando valores vacíos.
 function qs(params) {
   if (!params) return '';
   const entries = Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== '');
@@ -40,7 +39,6 @@ export const api = {
   updateProject: (id, data) => request('PUT', `/projects/${id}`, data),
   deleteProject: (id) => request('DELETE', `/projects/${id}`),
 
-  // filtros opcionales: { proyectoId, estado, prioridad, asignadoAId, sprintId, q, vencidas }
   getTasks: (filtros) => {
     const qs = filtros ? '?' + new URLSearchParams(
       Object.fromEntries(Object.entries(filtros).filter(([, v]) => v !== undefined && v !== null && v !== ''))
@@ -64,22 +62,18 @@ export const api = {
 
   getDashboard: () => request('GET', '/dashboard'),
 
-  // Sin params → array completo (para selects). Con { page } → { items, total, page, pages }.
   getUsers: (params) => request('GET', `/users${qs(params)}`),
   getUser: (id) => request('GET', `/users/${id}`),
   updateUser: (id, data) => request('PUT', `/users/${id}`, data),
 
-  // Sin params → array completo. Con { page } → { items, total, page, pages }.
   getEquipos: (params) => request('GET', `/equipos${qs(params)}`),
   getEquipo: (id) => request('GET', `/equipos/${id}`),
   createEquipo: (data) => request('POST', '/equipos', data),
   updateEquipo: (id, data) => request('PUT', `/equipos/${id}`, data),
   deleteEquipo: (id) => request('DELETE', `/equipos/${id}`),
-  // Invitaciones (los invitados entran como miembros del equipo)
   invitarMiembro: (equipoId, email) => request('POST', `/equipos/${equipoId}/invitar`, { email }),
   aceptarInvitacion: (equipoId) => request('PUT', `/equipos/${equipoId}/aceptar`),
   rechazarInvitacion: (equipoId) => request('DELETE', `/equipos/${equipoId}/rechazar`),
-  // Gestión de miembros
   cambiarRolMiembro: (equipoId, userId, rol) => request('PUT', `/equipos/${equipoId}/miembros/${userId}/rol`, { rol }),
   expulsarMiembro: (equipoId, userId) => request('DELETE', `/equipos/${equipoId}/miembros/${userId}`),
   uploadEquipoImagen: async (equipoId, file) => {
@@ -106,7 +100,6 @@ export const api = {
   getEtiquetas: () => request('GET', '/etiquetas'),
   createEtiqueta: (data) => request('POST', '/etiquetas', data),
   deleteEtiqueta: (id) => request('DELETE', `/etiquetas/${id}`),
-  // Etiquetas por tarea (devuelven la lista actualizada de la tarea)
   addEtiquetaTarea: (tareaId, etiquetaId) => request('POST', `/tasks/${tareaId}/etiquetas`, { etiquetaId }),
   removeEtiquetaTarea: (tareaId, etiquetaId) => request('DELETE', `/tasks/${tareaId}/etiquetas/${etiquetaId}`),
 
@@ -149,7 +142,6 @@ export const api = {
     return res.json();
   },
 
-  // Devuelve { items, total, noLeidas, page, pages }
   getNotificaciones: (params) => {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return request('GET', `/notificaciones${qs}`);
@@ -157,7 +149,6 @@ export const api = {
   updateNotificacion: (id, data) => request('PUT', `/notificaciones/${id}`, data),
   marcarTodasNotificaciones: () => request('PUT', '/notificaciones/marcar-todas'),
 
-  // Devuelve { items, total, page, pages }
   getHistorial: (params) => {
     const qs = params ? '?' + new URLSearchParams(params).toString() : '';
     return request('GET', `/historial${qs}`);

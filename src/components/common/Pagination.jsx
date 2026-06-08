@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-// Calcula el rango de páginas a mostrar alrededor de la actual (máx 5 números).
 function pageRange(current, total) {
   let start = Math.max(1, current - 2);
   let end = Math.min(total, current + 2);
@@ -12,10 +11,6 @@ function pageRange(current, total) {
   return pages;
 }
 
-/**
- * Controles de paginación por páginas numeradas.
- * Props: page (1-based), pages (total), onChange(page), total? (nº registros), label?
- */
 export default function Pagination({ page, pages, onChange, total, label = 'registros', className = '' }) {
   if (!pages || pages <= 1) return null;
   const nums = pageRange(page, pages);
@@ -71,10 +66,6 @@ export default function Pagination({ page, pages, onChange, total, label = 'regi
   );
 }
 
-/**
- * Hook para paginar una lista en memoria (cliente).
- * Devuelve { pageItems, page, pages, setPage, total }.
- */
 export function useClientPagination(items, perPage = 8) {
   const [page, setPage] = useState(1);
   const list = Array.isArray(items) ? items : [];

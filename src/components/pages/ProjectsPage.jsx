@@ -86,7 +86,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-[28px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>Proyectos</h1>
@@ -106,7 +106,7 @@ export default function ProjectsPage() {
         )}
       </div>
 
-      {/* Filters */}
+      {}
       <div className="flex items-center gap-3 flex-wrap">
         <div className="relative">
           <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: 'var(--text-muted)' }} />
@@ -135,7 +135,7 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Grid */}
+      {}
       {loading ? (
         <div className="flex justify-center py-20">
           <div className="w-9 h-9 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
@@ -165,7 +165,7 @@ export default function ProjectsPage() {
                 className="border rounded-2xl p-5 cursor-pointer transition-all group relative hover:shadow-xl"
                 style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
               >
-                {/* Actions */}
+                {}
                 {canManage && (
                   <div className="absolute top-4 right-4 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button

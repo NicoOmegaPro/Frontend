@@ -110,7 +110,6 @@ export default function DashboardPage() {
   const enProgresoTasks = tasks.filter((t) => t.estado === 'EN_PROGRESO');
   const finalizadasTasks = tasks.filter((t) => t.estado === 'FINALIZADO');
 
-  // Ventana de 7 días para "creadas recientemente" y "vencen pronto" (estilo Jira).
   const now = Date.now();
   const WEEK = 7 * 24 * 60 * 60 * 1000;
   const creadasRecientes = tasks.filter((t) => {
@@ -133,7 +132,6 @@ export default function DashboardPage() {
   const activeProjectsList = projects.filter((p) => p.estado === 'ACTIVO');
   const activeProjects = activeProjectsList.length;
 
-  // Tareas urgentes (no finalizadas) asignadas a ti o a nadie; las de otros no cuentan.
   const tareasUrgentes = tasks.filter(
     (t) =>
       t.prioridad === 'URGENTE' &&
@@ -203,7 +201,7 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-8">
-      {/* Welcome */}
+      {}
       <div>
         <h1 className="text-[32px] font-bold tracking-tight" style={{ color: 'var(--text)' }}>
           Hola, {user?.nombre?.split(' ')[0]}
@@ -213,7 +211,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Stats grid */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           icon={FolderKanban}
@@ -253,9 +251,9 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Charts + lists row */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Doughnut */}
+        {}
         <div className="rounded-2xl border p-4 flex flex-col overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)', height: 420 }}>
           <div className="flex items-center gap-2 mb-3">
             <TrendingUp size={15} style={{ color: 'var(--primary)' }} />
@@ -270,7 +268,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* My tasks */}
+        {}
         <div className="rounded-2xl border p-4 flex flex-col overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)', height: 420 }}>
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -316,7 +314,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Activity feed */}
+        {}
         <div className="rounded-2xl border p-4 flex flex-col overflow-hidden" style={{ background: 'var(--card)', borderColor: 'var(--border)', height: 420 }}>
           <div className="flex items-center gap-2 mb-3">
             <Activity size={15} style={{ color: 'var(--primary)' }} />
@@ -348,7 +346,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent projects */}
+      {}
       {projects.length > 0 && (
         <div className="rounded-2xl border p-6" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center justify-between mb-5">

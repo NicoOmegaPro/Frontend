@@ -194,7 +194,6 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
     }
   };
 
-  // Asigna o quita una etiqueta de la tarea; el backend devuelve la lista actualizada.
   const toggleEtiqueta = async (etiquetaId) => {
     const has = (task.etiquetas || []).some((te) => te.etiquetaId === etiquetaId);
     try {
@@ -339,7 +338,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
         onClick={(e) => e.stopPropagation()}
       >
 
-        {/* ── Header ── */}
+        {}
         <div
           className="flex items-center justify-between px-6 py-3.5 flex-shrink-0 border-b"
           style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
@@ -372,13 +371,13 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
           </div>
         </div>
 
-        {/* ── Body ── */}
+        {}
         <div className="flex flex-1 min-h-0 overflow-hidden">
 
-          {/* Left: main content */}
+          {}
           <div className="flex-1 overflow-y-auto px-8 py-7 space-y-8">
 
-            {/* Title */}
+            {}
             <div>
               {editingTitle ? (
                 <div className="flex gap-2 items-start">
@@ -407,7 +406,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {/* Description */}
+            {}
             <div>
               <SectionHeader>Descripción</SectionHeader>
               {editingDesc ? (
@@ -453,7 +452,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {/* Subtasks */}
+            {}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <SectionHeader>
@@ -523,7 +522,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {/* Attachments */}
+            {}
             <div>
               <SectionHeader>Adjuntos ({adjuntos.length})</SectionHeader>
               <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
@@ -569,7 +568,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {/* Comments */}
+            {}
             <div>
               <SectionHeader>Comentarios ({comentarios.length})</SectionHeader>
 
@@ -609,7 +608,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
           </div>
 
-          {/* Right: properties sidebar */}
+          {}
           <div
             className="w-60 flex-shrink-0 border-l overflow-y-auto px-5 py-6 space-y-5"
             style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}

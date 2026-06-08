@@ -23,7 +23,7 @@ export default function KanbanColumn({
 
   return (
     <div className="kanban-col">
-      {/* Header */}
+      {}
       <div className="kanban-col-header flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <span className="w-2 h-2 rounded-full" style={{ background: cfg.accent, boxShadow: `0 0 8px ${cfg.accent}80` }} />
@@ -40,7 +40,7 @@ export default function KanbanColumn({
         </button>
       </div>
 
-      {/* Drop zone */}
+      {}
       <div
         ref={setNodeRef}
         className={`kanban-col-body flex flex-col gap-2.5 ${isOver ? 'col-drop-active' : ''}`}

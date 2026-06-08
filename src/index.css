@@ -1,16 +1,10 @@
 @import "tailwindcss";
 
-/* ════════════════════════════════════════════════════════════════
-   NOIR — design system
-   Dark-first, monochrome canvas + single indigo accent.
-   Inspired by Linear · Vercel · Raycast.
-   ════════════════════════════════════════════════════════════════ */
 
-/* ─── Tema oscuro único ─── */
 :root {
-  --bg:            #09070E;   /* negro con leve tinte violeta */
-  --bg-elev:       #0D0B14;   /* sidebar / topbar shell */
-  --bg-secondary:  #181522;   /* inset surfaces, inputs */
+  --bg:            #09070E;
+  --bg-elev:       #0D0B14;
+  --bg-secondary:  #181522;
   --card:          #131019;
   --card-hover:    #1B1726;
   --border:        #262130;
@@ -21,7 +15,7 @@
   --text-muted:    #8B8B94;
   --text-faint:    #55555E;
 
-  --primary:       #6E76F1;   /* indigo accent */
+  --primary:       #6E76F1;
   --primary-dark:  #4C53C9;
   --primary-hover: #8A90F7;
   --primary-soft:  rgba(110,118,241,0.14);
@@ -38,9 +32,6 @@
   --shadow-pop:    0 12px 40px rgba(0,0,0,0.55), 0 0 0 1px var(--border);
 }
 
-/* ════════════════════════════════════════
-   Base
-   ════════════════════════════════════════ */
 * { box-sizing: border-box; }
 
 html { background: var(--bg); }
@@ -59,21 +50,16 @@ body {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-/* ─── Fondo ambiental: negro ↔ morado hecho en CSS (sin imagen) ───
-   Dos capas de auras violeta que cruzan su intensidad (cuando una sube,
-   la otra baja) -> el lienzo "cambia de color" entre morado fuerte y suave,
-   evocando el logo, sin llegar a un wallpaper recargado.               */
 body::before,
 body::after {
   content: '';
   position: fixed;
-  inset: -12vmax;            /* margen extra para que el scale nunca muestre bordes */
+  inset: -12vmax;
   z-index: -1;
   pointer-events: none;
   will-change: transform, opacity;
 }
 
-/* Capa A — morados intensos en esquinas opuestas. */
 body::before {
   background:
     radial-gradient(40% 38% at 16% 10%, rgba(139,92,246,0.40), transparent 66%),
@@ -83,7 +69,6 @@ body::before {
   animation: auraA 22s ease-in-out infinite alternate;
 }
 
-/* Capa B — morados más profundos/suaves, desfasada: aporta el cambio de tono. */
 body::after {
   background:
     radial-gradient(44% 40% at 10% 88%, rgba(168,85,247,0.30), transparent 68%),
@@ -93,7 +78,6 @@ body::after {
   animation: auraB 29s ease-in-out infinite alternate;
 }
 
-/* Intensidades opuestas: cuando A está fuerte, B está flojo y viceversa. */
 @keyframes auraA {
   0%   { transform: translate3d(0, 0, 0) scale(1);       opacity: 0.55; }
   50%  { transform: translate3d(2%, -1.5%, 0) scale(1.08); opacity: 1;    }
@@ -113,14 +97,12 @@ h1, h2, h3, h4 { letter-spacing: -0.02em; }
 
 ::selection { background: var(--primary-soft); color: var(--text); }
 
-/* Cursor affordances */
 button, [role="button"], a, label[for], select, summary,
 input[type="checkbox"], input[type="radio"], input[type="file"],
 input[type="submit"], input[type="button"] { cursor: pointer; }
 button:disabled, [role="button"][aria-disabled="true"], button[disabled] { cursor: not-allowed; }
 .clickable { cursor: pointer; }
 
-/* ─── Scrollbar ─── */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
@@ -131,11 +113,7 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-faint); background-clip: padding-box; }
 
-/* ════════════════════════════════════════
-   Reusable components
-   ════════════════════════════════════════ */
 
-/* Surface card */
 .surface {
   background: var(--card);
   border: 1px solid var(--border);
@@ -147,7 +125,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
   background: var(--card-hover);
 }
 
-/* Buttons */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-weight: 600; font-size: 13.5px; line-height: 1;
@@ -177,7 +154,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 .btn-danger { background: rgba(240,85,107,0.12); color: var(--danger); }
 .btn-danger:hover:not(:disabled) { background: rgba(240,85,107,0.20); }
 
-/* Icon button */
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
   width: 34px; height: 34px; border-radius: 9px;
@@ -186,7 +162,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 }
 .icon-btn:hover { background: var(--bg-secondary); color: var(--text); }
 
-/* Inputs */
 .input-field, .input {
   background: var(--bg-secondary);
   border: 1px solid var(--border);
@@ -202,7 +177,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
   background: var(--card);
 }
 
-/* Badge / chip */
 .badge {
   display: inline-flex; align-items: center; gap: 5px;
   font-size: 11.5px; font-weight: 600; letter-spacing: -0.01em;
@@ -215,14 +189,12 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
   background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text);
 }
 
-/* Soft accent surfaces (translucent state pills) */
 .tone-neutral { background: rgba(139,139,148,0.14); color: #B6B6BF; }
 .tone-accent  { background: var(--primary-soft);      color: var(--primary-hover); }
 .tone-warn    { background: rgba(224,168,46,0.14);    color: #E0A82E; }
 .tone-success { background: rgba(63,185,80,0.14);     color: #4ED164; }
 .tone-danger  { background: rgba(240,85,107,0.14);    color: #F0556B; }
 
-/* Progress */
 .progress-bar {
   height: 6px; border-radius: 9999px;
   background: var(--bg-secondary); overflow: hidden;
@@ -233,7 +205,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
   transition: width .5s cubic-bezier(.4,0,.2,1);
 }
 
-/* ─── Kanban ─── */
 .kanban-col { width: 312px; min-width: 312px; flex-shrink: 0; display: flex; flex-direction: column; }
 .kanban-col-body {
   border-radius: 14px; padding: 10px; min-height: 480px; flex: 1;
@@ -266,7 +237,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 
 .sidebar-link { transition: background .14s ease, color .14s ease; }
 
-/* ─── Animations ─── */
 .modal-backdrop { animation: fadeIn .18s ease; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
 .modal-panel    { animation: slideInRight .26s cubic-bezier(.16,1,.3,1); }
 .modal-center   { animation: popIn .18s cubic-bezier(.16,1,.3,1); }
@@ -317,13 +287,7 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
   animation: celebratePop 1.9s cubic-bezier(.16,1,.3,1) forwards;
 }
 
-/* ════════════════════════════════════════════════════════════════
-   Legacy color remap — the older screens are written with hardcoded
-   Jira-blue arbitrary classes. Retarget them all to the NOIR palette
-   so every screen is cohesive even where markup is untouched.
-   ════════════════════════════════════════════════════════════════ */
 
-/* Surfaces */
 .bg-white                 { background-color: var(--card)         !important; }
 .bg-\[\#F4F5F7\]          { background-color: var(--bg-secondary) !important; }
 .bg-\[\#EBECF0\]          { background-color: var(--card-hover)   !important; }
@@ -342,7 +306,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 .bg-blue-50\/60           { background-color: var(--primary-soft) !important; }
 .bg-red-50, .hover\:bg-red-50:hover { background-color: rgba(240,85,107,.12) !important; }
 
-/* Text */
 .text-\[\#172B4D\]        { color: var(--text)        !important; }
 .text-\[\#6B778C\]        { color: var(--text-muted)  !important; }
 .text-\[\#5E6C84\]        { color: var(--text-muted)  !important; }
@@ -354,7 +317,6 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 .hover\:text-\[\#0747A6\]:hover { color: var(--primary-hover) !important; }
 .text-red-500, .hover\:text-red-500:hover { color: var(--danger) !important; }
 
-/* Borders */
 .border-\[\#DFE1E6\]      { border-color: var(--border) !important; }
 .border-\[\#F4F5F7\]      { border-color: var(--border) !important; }
 .border-\[\#D7DAE0\]      { border-color: var(--border) !important; }
@@ -363,12 +325,10 @@ button:disabled, [role="button"][aria-disabled="true"], button[disabled] { curso
 .border-\[\#0052CC\]      { border-color: var(--primary) !important; }
 .border-\[\#0052CC\]\/40  { border-color: var(--border) !important; }
 
-/* Hover bg */
 .hover\:bg-\[\#F4F5F7\]:hover  { background-color: var(--bg-secondary) !important; }
 .hover\:bg-\[\#EBECF0\]:hover  { background-color: var(--card-hover)   !important; }
 .hover\:bg-white\/5:hover      { background-color: var(--bg-secondary) !important; }
 
-/* Form controls (covers any not using .input) */
 input:not([type="range"]):not([type="checkbox"]):not([type="radio"]),
 select, textarea {
   background-color: var(--bg-secondary);
@@ -378,15 +338,12 @@ select, textarea {
 input:focus, select:focus, textarea:focus { outline: none; }
 ::placeholder { color: var(--text-faint); }
 
-/* Native dropdown options legible on dark */
 option { background: var(--card); color: var(--text); }
 
-/* Shadows */
 .shadow-md  { box-shadow: var(--shadow-md)  !important; }
 .shadow-xl  { box-shadow: var(--shadow-md)  !important; }
 .shadow-2xl { box-shadow: var(--shadow-lg)  !important; }
 
-/* Floating popovers/dropdowns/modals built with bg-white */
 [class*="absolute"][class*="bg-white"],
 [class*="fixed"][class*="bg-white"] {
   background-color: var(--card) !important;

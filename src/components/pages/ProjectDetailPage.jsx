@@ -79,11 +79,10 @@ export default function ProjectDetailPage() {
   const [newSprint, setNewSprint] = useState({ nombre: '', fechaInicio: '', fechaFin: '' });
   const [creatingSprintLoading, setCreatingSprintLoading] = useState(false);
 
-  const canManage = true; // Se calcula después de cargar el proyecto (ver myTeamRole abajo)
+  const canManage = true;
 
   const load = useCallback(async () => {
     try {
-      // getProject ya incluye sprints y miembros. getTasks({proyectoId}) trae _count para los contadores.
       const [proj, projTasks] = await Promise.all([
         api.getProject(projectId),
         api.getTasks({ proyectoId: projectId }).catch(() => []),
@@ -132,7 +131,6 @@ export default function ProjectDetailPage() {
     }
   };
 
-  // Filter tasks
   const currentSprint = sprints.find((s) => s.id === selectedSprint) || null;
 
   const filteredTasks = tasks.filter((t) => {
@@ -149,16 +147,14 @@ export default function ProjectDetailPage() {
   const doneTasks = tasks.filter((t) => t.estado === 'FINALIZADO').length;
   const progress = tasks.length ? Math.round((doneTasks / tasks.length) * 100) : 0;
 
-  // Miembros del proyecto (para el filtro de asignado). Vienen incluidos en GET /projects/:id.
   const projectMembers = (project?.miembros || [])
     .map((m) => m.usuario)
     .filter(Boolean);
 
-  // Rol del usuario en este proyecto = su rol en el equipo (viene del backend)
   const myTeamRole = project?.myProjectRole ?? null;
   const canManageProject = myTeamRole === 'JEFE_EQUIPO' || user?.esAdmin;
   const canCreateSprint  = canManageProject || myTeamRole === 'SUPERVISOR';
-  const canCreateTask    = !!myTeamRole; // cualquier miembro del equipo puede crear tarea
+  const canCreateTask    = !!myTeamRole;
 
   const priorityBarData = {
     labels: ['Urgente', 'Alta', 'Media', 'Baja'],
@@ -230,7 +226,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      {/* Project header */}
+      {}
       <div className="bg-white rounded-xl border border-[#DFE1E6] p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -285,9 +281,9 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Toolbar */}
+      {}
       <div className="flex items-center gap-2 flex-wrap">
-        {/* Sprint selector */}
+        {}
         <div className="relative">
           <button
             onClick={() => setShowSprintDropdown(!showSprintDropdown)}
@@ -335,7 +331,7 @@ export default function ProjectDetailPage() {
           )}
         </div>
 
-        {/* Search */}
+        {}
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B778C]" />
           <input
@@ -346,7 +342,7 @@ export default function ProjectDetailPage() {
           />
         </div>
 
-        {/* Priority filter */}
+        {}
         <select
           value={prioridadFilter}
           onChange={(e) => setPrioridadFilter(e.target.value)}
@@ -359,7 +355,7 @@ export default function ProjectDetailPage() {
           <option value="BAJA">Baja</option>
         </select>
 
-        {/* Assignee filter — solo miembros de este proyecto */}
+        {}
         <select
           value={asignadoFilter}
           onChange={(e) => setAsignadoFilter(e.target.value)}
@@ -374,7 +370,7 @@ export default function ProjectDetailPage() {
 
         <div className="ml-auto flex items-center gap-2">
           {currentSprint && <SprintBadge sprint={currentSprint} />}
-          {/* En estado vacío el CTA central ya cubre la creación: evitamos el botón duplicado. */}
+          {}
           {tasks.length > 0 && (
             <button
               onClick={() => { setCreateTaskStatus('PENDIENTE'); setShowCreateTask(true); }}
@@ -388,7 +384,7 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {/* Charts row */}
+      {}
       {tasks.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
@@ -406,7 +402,7 @@ export default function ProjectDetailPage() {
         </div>
       )}
 
-      {/* Kanban Board */}
+      {}
       <div className="flex-1">
         {tasks.length === 0 ? (
           <div className="text-center py-20 text-[#6B778C]">
@@ -437,7 +433,7 @@ export default function ProjectDetailPage() {
         )}
       </div>
 
-      {/* Task detail modal */}
+      {}
       {selectedTask && (
         <TaskDetailModal
           taskId={selectedTask}
@@ -448,7 +444,7 @@ export default function ProjectDetailPage() {
         />
       )}
 
-      {/* Create task modal */}
+      {}
       {showCreateTask && (
         <CreateTaskModal
           projectId={projectId}
@@ -457,7 +453,6 @@ export default function ProjectDetailPage() {
           onClose={() => setShowCreateTask(false)}
           onCreated={(newTask) => {
             setShowCreateTask(false);
-            // Inserción optimista: la tarea aparece al instante, sin esperar al refetch.
             if (newTask && newTask.id && newTask.proyectoId === projectId) {
               setTasks((prev) =>
                 prev.some((t) => t.id === newTask.id) ? prev : [...prev, newTask]
@@ -468,7 +463,7 @@ export default function ProjectDetailPage() {
         />
       )}
 
-      {/* Create sprint modal */}
+      {}
       {showSprintModal && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 modal-backdrop">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm modal-center">
