@@ -89,10 +89,8 @@ export default function UserProfilePage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
 
-        {}
         <div className="space-y-5">
 
-          {}
           <SectionCard>
             <div className="flex flex-col items-center text-center gap-4">
               {profile.imagenPerfil ? (
@@ -126,7 +124,6 @@ export default function UserProfilePage() {
             </div>
           </SectionCard>
 
-          {}
           {equipos.length > 0 && (
             <SectionCard title="Equipos" icon={Users}>
               <div className="space-y-2">
@@ -162,7 +159,6 @@ export default function UserProfilePage() {
           )}
         </div>
 
-        {}
         <div className="lg:col-span-2">
           <SectionCard title="Información personal" icon={User}>
             <div className="space-y-5">

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 function pageRange(current, total) {
@@ -72,9 +72,6 @@ export function useClientPagination(items, perPage = 8) {
   const total = list.length;
   const pages = Math.max(1, Math.ceil(total / perPage));
   const safePage = Math.min(page, pages);
-  const pageItems = useMemo(
-    () => list.slice((safePage - 1) * perPage, safePage * perPage),
-    [list, safePage, perPage]
-  );
+  const pageItems = list.slice((safePage - 1) * perPage, safePage * perPage);
   return { pageItems, page: safePage, pages, setPage, total };
 }

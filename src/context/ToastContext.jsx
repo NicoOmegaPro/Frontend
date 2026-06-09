@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { CheckCircle2, XCircle, AlertTriangle, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -12,15 +12,15 @@ const META = {
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
 
-  const addToast = useCallback((message, type = 'success') => {
+  const addToast = (message, type = 'success') => {
     const id = Date.now() + Math.random();
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
-  }, []);
+  };
 
-  const remove = useCallback((id) => {
+  const remove = (id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+  };
 
   return (
     <ToastContext.Provider value={{ addToast }}>

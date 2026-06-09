@@ -116,7 +116,6 @@ export default function CreateProjectModal({ onClose, onCreated }) {
               </select>
             </div>
 
-            {}
             {equipoSel && (
               <div>
                 <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-2 flex items-center gap-1.5">

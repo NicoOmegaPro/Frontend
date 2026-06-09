@@ -1,134 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
-import {
-  X, Trash2, Plus, Check, Send, Edit2, Upload, Image,
-  FileText, File, ChevronDown,
-} from 'lucide-react';
+import { X, Trash2, Plus, Check, Edit2 } from 'lucide-react';
 import { api } from '../../api';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
-import { formatDistanceToNow, format } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import Avatar from '../common/Avatar';
-
-const BACKEND = import.meta.env.VITE_BACKEND_URL || (import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL.replace(/\/api$/, '') : 'http://localhost:3000');
-const ESTADOS = ['PENDIENTE', 'EN_PROGRESO', 'EN_REVISION', 'FINALIZADO'];
-const PRIORIDADES = ['BAJA', 'MEDIA', 'ALTA', 'URGENTE'];
-
-function getAdjuntoUrl(rutaLocal) {
-  if (!rutaLocal) return '';
-  if (rutaLocal.startsWith('http')) return rutaLocal;
-  return `${BACKEND}${rutaLocal}`;
-}
-
-function isImageFile(nombre, rutaLocal) {
-  const str = (nombre || rutaLocal || '').toLowerCase();
-  return /\.(jpg|jpeg|png|gif|webp|avif)$/.test(str) || str.includes('picsum.photos');
-}
-
-function FileIcon({ nombre }) {
-  const ext = (nombre || '').split('.').pop().toLowerCase();
-  return ext === 'pdf' ? (
-    <FileText size={26} className="text-red-400" />
-  ) : ['doc', 'docx'].includes(ext) ? (
-    <FileText size={26} className="text-blue-400" />
-  ) : (
-    <File size={26} style={{ color: 'var(--text-muted)' }} />
-  );
-}
-
-const ESTADO_STYLE = {
-  PENDIENTE:   { bg: 'rgba(139,139,148,.18)', color: '#B6B6BF', label: 'Pendiente' },
-  EN_PROGRESO: { bg: 'rgba(110,118,241,.18)', color: '#8A90F7', label: 'En progreso' },
-  EN_REVISION: { bg: 'rgba(224,168,46,.18)',  color: '#E0A82E', label: 'En revisión' },
-  FINALIZADO:  { bg: 'rgba(63,185,80,.18)',   color: '#4ED164', label: 'Finalizado' },
-};
-
-const PRI_STYLE = {
-  BAJA:    { color: '#38BDF8', bg: 'rgba(56,189,248,.18)',  label: 'Baja',    dot: 'bg-sky-400' },
-  MEDIA:   { color: '#6E76F1', bg: 'rgba(110,118,241,.18)', label: 'Media',   dot: 'bg-indigo-400' },
-  ALTA:    { color: '#FB923C', bg: 'rgba(251,146,60,.18)',  label: 'Alta',    dot: 'bg-orange-400' },
-  URGENTE: { color: '#F0556B', bg: 'rgba(240,85,107,.18)',  label: 'Urgente', dot: 'bg-rose-400' },
-};
-
-function PropLabel({ children }) {
-  return (
-    <p className="text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: 'var(--text-muted)' }}>
-      {children}
-    </p>
-  );
-}
-
-function DropdownItem({ children, active, onClick }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors"
-      style={{
-        background: hovered || active ? 'var(--bg-secondary)' : 'transparent',
-        color: 'var(--text)',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function SelectDropdown({ value, options, onChange, renderOption, renderValue }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-  useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener('mousedown', h);
-    return () => document.removeEventListener('mousedown', h);
-  }, []);
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-sm transition-colors border w-full"
-        style={{ borderColor: 'var(--border)', background: 'var(--card-hover)' }}
-      >
-        <span className="flex-1 text-left">{renderValue(value)}</span>
-        <ChevronDown size={12} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-      </button>
-      {open && (
-        <div
-          className="absolute left-0 top-full mt-1 rounded-xl shadow-2xl z-30 w-full min-w-44 py-1.5 border"
-          style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-        >
-          {options.map((opt) => (
-            <DropdownItem
-              key={opt}
-              active={opt === value}
-              onClick={() => { onChange(opt); setOpen(false); }}
-            >
-              {renderOption(opt)}
-              {opt === value && <Check size={11} className="ml-auto flex-shrink-0" style={{ color: 'var(--primary)' }} />}
-            </DropdownItem>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function SectionHeader({ children }) {
-  return (
-    <h3
-      className="text-[11px] font-semibold uppercase tracking-widest mb-3 flex items-center gap-1"
-      style={{ color: 'var(--text-muted)' }}
-    >
-      {children}
-    </h3>
-  );
-}
-
-function Divider() {
-  return <div className="h-px my-1" style={{ background: 'var(--border)' }} />;
-}
+import { SectionHeader } from './taskdetail/ui';
+import { getAdjuntoUrl, isImageFile } from './taskdetail/constants';
+import SubtaskRow from './taskdetail/SubtaskRow';
+import AdjuntoCard from './taskdetail/AdjuntoCard';
+import DropZone from './taskdetail/DropZone';
+import CommentInput from './taskdetail/CommentInput';
+import TaskSidebar from './taskdetail/TaskSidebar';
 
 export default function TaskDetailModal({ taskId, members, onClose, onUpdated, onDeleted }) {
   const { user } = useAuth();
@@ -338,7 +222,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
         onClick={(e) => e.stopPropagation()}
       >
 
-        {}
+        {/* Cabecera: ruta de la tarea + acciones */}
         <div
           className="flex items-center justify-between px-6 py-3.5 flex-shrink-0 border-b"
           style={{ borderColor: 'var(--border)', background: 'var(--bg-secondary)' }}
@@ -371,13 +255,13 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
           </div>
         </div>
 
-        {}
+        {/* Cuerpo: columna principal + barra lateral */}
         <div className="flex flex-1 min-h-0 overflow-hidden">
 
-          {}
+          {/* Columna principal */}
           <div className="flex-1 overflow-y-auto px-8 py-7 space-y-8">
 
-            {}
+            {/* Título (editable al hacer click) */}
             <div>
               {editingTitle ? (
                 <div className="flex gap-2 items-start">
@@ -406,7 +290,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {}
+            {/* Descripción */}
             <div>
               <SectionHeader>Descripción</SectionHeader>
               {editingDesc ? (
@@ -452,7 +336,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {}
+            {/* Subtareas */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <SectionHeader>
@@ -522,7 +406,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {}
+            {/* Adjuntos */}
             <div>
               <SectionHeader>Adjuntos ({adjuntos.length})</SectionHeader>
               <input ref={fileInputRef} type="file" accept="image/*,.pdf,.doc,.docx,.txt" className="hidden" onChange={handleFileUpload} />
@@ -568,7 +452,7 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
               )}
             </div>
 
-            {}
+            {/* Comentarios */}
             <div>
               <SectionHeader>Comentarios ({comentarios.length})</SectionHeader>
 
@@ -608,280 +492,22 @@ export default function TaskDetailModal({ taskId, members, onClose, onUpdated, o
 
           </div>
 
-          {}
-          <div
-            className="w-60 flex-shrink-0 border-l overflow-y-auto px-5 py-6 space-y-5"
-            style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)' }}
-          >
-            <div>
-              <PropLabel>Estado</PropLabel>
-              <SelectDropdown
-                value={task.estado}
-                options={ESTADOS}
-                onChange={(v) => updateTask({ estado: v })}
-                renderValue={(v) => { const s = ESTADO_STYLE[v]; return <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>; }}
-                renderOption={(v) => { const s = ESTADO_STYLE[v]; return <span className="badge" style={{ background: s.bg, color: s.color }}>{s.label}</span>; }}
-              />
-            </div>
-
-            <div>
-              <PropLabel>Prioridad</PropLabel>
-              <SelectDropdown
-                value={task.prioridad}
-                options={PRIORIDADES}
-                onChange={(v) => updateTask({ prioridad: v })}
-                renderValue={(v) => { const p = PRI_STYLE[v]; return <span className="badge" style={{ background: p.bg, color: p.color }}><span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />{p.label}</span>; }}
-                renderOption={(v) => { const p = PRI_STYLE[v]; return <span className="badge" style={{ background: p.bg, color: p.color }}><span className={`w-1.5 h-1.5 rounded-full ${p.dot}`} />{p.label}</span>; }}
-              />
-            </div>
-
-            <div>
-              <PropLabel>Etiquetas</PropLabel>
-              <div className="flex flex-wrap gap-1.5">
-                {etiquetas.map((et) => {
-                  const active = (task.etiquetas || []).some((te) => te.etiquetaId === et.id);
-                  return (
-                    <button
-                      key={et.id}
-                      onClick={() => toggleEtiqueta(et.id)}
-                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-semibold transition-all"
-                      style={active
-                        ? { background: `${et.color}22`, color: et.color, boxShadow: `inset 0 0 0 1px ${et.color}` }
-                        : { background: 'var(--bg-secondary)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
-                      title={active ? 'Quitar etiqueta' : 'Añadir etiqueta'}
-                    >
-                      <span className="w-2 h-2 rounded-full" style={{ background: et.color }} />
-                      {et.nombre}
-                    </button>
-                  );
-                })}
-                {etiquetas.length === 0 && (
-                  <span className="text-[11px]" style={{ color: 'var(--text-faint)' }}>No hay etiquetas</span>
-                )}
-              </div>
-            </div>
-
-            <div>
-              <PropLabel>Asignado a</PropLabel>
-              <div className="flex items-center gap-2">
-                {task.asignadoA && <Avatar user={task.asignadoA} size={26} />}
-                <select
-                  value={task.asignadoAId || ''}
-                  onChange={(e) => updateTask({ asignadoAId: e.target.value ? parseInt(e.target.value) : null })}
-                  className="flex-1 min-w-0 rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
-                  style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
-                >
-                  <option value="">Sin asignar</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>{u.nombre}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <PropLabel>Sprint</PropLabel>
-              <select
-                value={task.sprintId || ''}
-                onChange={(e) => updateTask({ sprintId: e.target.value ? parseInt(e.target.value) : null })}
-                className="w-full rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
-                style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)', colorScheme: 'dark' }}
-              >
-                <option value="">Sin sprint</option>
-                {sprints.map((s) => (
-                  <option key={s.id} value={s.id}>{s.nombre}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <PropLabel>Vencimiento</PropLabel>
-              <input
-                type="date"
-                value={task.fechaVencimiento ? format(new Date(task.fechaVencimiento), 'yyyy-MM-dd') : ''}
-                onChange={(e) => updateTask({ fechaVencimiento: e.target.value || null })}
-                className="w-full rounded-lg px-2.5 py-2 text-xs border focus:outline-none"
-                style={{
-                  background: 'var(--bg-secondary)',
-                  borderColor: isOverdue ? '#F0556B' : 'var(--border)',
-                  color: isOverdue ? '#F0556B' : 'var(--text)',
-                  colorScheme: 'dark',
-                }}
-              />
-              {isOverdue && (
-                <p className="text-[10px] mt-1 font-semibold" style={{ color: '#F0556B' }}>⚠ Vencida</p>
-              )}
-            </div>
-
-            <Divider />
-
-            <div>
-              <PropLabel>Proyecto</PropLabel>
-              <p className="text-sm font-medium" style={{ color: 'var(--text)' }}>{task.proyecto?.nombre || '—'}</p>
-            </div>
-
-            {subtareas.length > 0 && (
-              <div>
-                <PropLabel>Progreso</PropLabel>
-                <div className="h-1.5 rounded-full overflow-hidden mb-1.5" style={{ background: 'var(--border)' }}>
-                  <div className="h-full rounded-full transition-all duration-500" style={{ width: `${subtasksPct}%`, background: 'var(--primary)' }} />
-                </div>
-                <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
-                  {subtasksDone}/{subtareas.length} subtareas · {subtasksPct}%
-                </p>
-              </div>
-            )}
-
-            {task.createdAt && (
-              <div>
-                <PropLabel>Creado</PropLabel>
-                <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {format(new Date(task.createdAt), 'dd MMM yyyy', { locale: es })}
-                </p>
-              </div>
-            )}
-          </div>
+          {/* Barra lateral con las propiedades de la tarea */}
+          <TaskSidebar
+            task={task}
+            etiquetas={etiquetas}
+            sprints={sprints}
+            users={users}
+            subtareas={subtareas}
+            subtasksDone={subtasksDone}
+            subtasksPct={subtasksPct}
+            isOverdue={isOverdue}
+            onUpdate={updateTask}
+            onToggleEtiqueta={toggleEtiqueta}
+          />
 
         </div>
       </div>
     </div>
-  );
-}
-
-function SubtaskRow({ subtask: s, onToggle, onDelete }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      className="flex items-center gap-3 group px-2 py-1.5 rounded-lg transition-colors"
-      style={{ background: hovered ? 'var(--bg-secondary)' : 'transparent' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <button
-        onClick={onToggle}
-        className="w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 transition-colors"
-        style={s.completada
-          ? { background: '#22c55e', borderColor: '#22c55e' }
-          : { background: 'transparent', borderColor: 'var(--border)' }
-        }
-      >
-        {s.completada && <Check size={10} className="text-white" strokeWidth={3} />}
-      </button>
-      <span
-        className="text-sm flex-1"
-        style={{
-          color: s.completada ? 'var(--text-faint)' : 'var(--text)',
-          textDecoration: s.completada ? 'line-through' : 'none',
-        }}
-      >
-        {s.titulo}
-      </span>
-      <button
-        onClick={onDelete}
-        className="opacity-0 group-hover:opacity-100 p-0.5 transition-opacity"
-        style={{ color: 'var(--text-muted)' }}
-        onMouseEnter={e => e.currentTarget.style.color = '#F0556B'}
-        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-      >
-        <X size={12} />
-      </button>
-    </div>
-  );
-}
-
-function AdjuntoCard({ adjunto: a, imgUrl, isImg, onDelete }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      className="group relative rounded-xl border overflow-hidden transition-colors"
-      style={{ borderColor: hovered ? 'var(--primary)' : 'var(--border)' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      {isImg ? (
-        <a href={imgUrl} target="_blank" rel="noopener noreferrer">
-          <img
-            src={imgUrl}
-            alt={a.nombre}
-            className="w-full h-24 object-cover"
-            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; }}
-          />
-          <div className="hidden w-full h-24 items-center justify-center" style={{ background: 'var(--bg-secondary)' }}>
-            <Image size={18} style={{ color: 'var(--text-faint)' }} />
-          </div>
-        </a>
-      ) : (
-        <a
-          href={imgUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex flex-col items-center justify-center gap-2 h-24 transition-colors"
-          style={{ background: 'var(--bg-secondary)' }}
-        >
-          <FileIcon nombre={a.nombre} />
-          <span className="text-[9px] font-semibold uppercase" style={{ color: 'var(--text-muted)' }}>
-            {(a.nombre || '').split('.').pop().toUpperCase() || 'FILE'}
-          </span>
-        </a>
-      )}
-      <div className="px-2 py-1.5 flex items-center justify-between gap-1" style={{ background: 'var(--bg-secondary)' }}>
-        <span className="text-[10px] truncate font-medium" style={{ color: 'var(--text)' }}>{a.nombre}</span>
-        <button
-          onClick={onDelete}
-          className="opacity-0 group-hover:opacity-100 flex-shrink-0 p-0.5 transition"
-          style={{ color: 'var(--text-muted)' }}
-          onMouseEnter={e => e.currentTarget.style.color = '#F0556B'}
-          onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
-        >
-          <X size={11} />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function DropZone({ onClick }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="w-full border-2 border-dashed rounded-xl py-7 flex flex-col items-center gap-2 transition-colors"
-      style={{ borderColor: hovered ? 'var(--primary)' : 'var(--border)' }}
-    >
-      <Upload size={20} style={{ color: 'var(--text-faint)' }} />
-      <span className="text-xs" style={{ color: 'var(--text-faint)' }}>Haz clic para subir imágenes o archivos</span>
-      <span className="text-[10px]" style={{ color: 'var(--text-faint)' }}>JPG, PNG, GIF, PDF · Máx. 10 MB</span>
-    </button>
-  );
-}
-
-function CommentInput({ value, onChange, onSubmit, sending }) {
-  return (
-    <>
-      <textarea
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Añade un comentario... (Ctrl+Enter para enviar)"
-        rows={2}
-        onKeyDown={(e) => { if (e.key === 'Enter' && e.ctrlKey) onSubmit(); }}
-        className="w-full rounded-xl px-4 py-3 text-sm border resize-none focus:outline-none transition-colors"
-        style={{ background: 'var(--bg-secondary)', borderColor: 'var(--border)', color: 'var(--text)' }}
-        onFocus={e => e.target.style.borderColor = 'var(--primary)'}
-        onBlur={e => e.target.style.borderColor = 'var(--border)'}
-      />
-      {value.trim() && (
-        <button
-          onClick={onSubmit}
-          disabled={sending}
-          className="mt-2 flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-white text-xs font-semibold disabled:opacity-60 hover:opacity-90 transition-opacity"
-          style={{ background: 'var(--primary)' }}
-        >
-          <Send size={11} />
-          {sending ? 'Enviando...' : 'Comentar'}
-        </button>
-      )}
-    </>
   );
 }

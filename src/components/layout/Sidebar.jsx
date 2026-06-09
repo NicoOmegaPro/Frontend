@@ -42,7 +42,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         transition: 'width .22s cubic-bezier(.16,1,.3,1)',
       }}
     >
-      {}
       <div className={`flex items-center h-[60px] flex-shrink-0 ${collapsed ? 'justify-center px-0' : 'px-4'}`}>
         {!collapsed && (
           <div className="flex items-center gap-2.5 flex-1 min-w-0">
@@ -65,7 +64,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         </button>
       </div>
 
-      {}
       <nav className={`flex-1 py-3 flex flex-col gap-0.5 overflow-y-auto overflow-x-hidden ${collapsed ? 'px-2.5' : 'px-3'}`}>
         {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
           <NavLink
@@ -91,7 +89,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
           </NavLink>
         ))}
 
-        {}
         {!collapsed && projects.length > 0 && (
           <div className="mt-6">
             <p className="text-[10.5px] font-semibold uppercase tracking-widest px-3 mb-1.5" style={{ color: 'var(--text-faint)' }}>
@@ -120,7 +117,6 @@ export default function Sidebar({ collapsed, setCollapsed }) {
         )}
       </nav>
 
-      {}
       <div className={`py-3 flex-shrink-0 ${collapsed ? 'px-2.5' : 'px-3'}`} style={{ borderTop: '1px solid var(--border)' }}>
         {!collapsed && user && (
           <NavLink

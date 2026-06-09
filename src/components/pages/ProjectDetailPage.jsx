@@ -1,8 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import {
-  ArrowLeft, Plus, Settings, ChevronDown, Search, Filter, Zap, Calendar,
-} from 'lucide-react';
+import { ArrowLeft, Plus, Search } from 'lucide-react';
 import { api } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
@@ -10,45 +8,16 @@ import KanbanBoard from '../kanban/KanbanBoard';
 import TaskDetailModal from '../tasks/TaskDetailModal';
 import Avatar from '../common/Avatar';
 import CreateTaskModal from '../tasks/CreateTaskModal';
-import { format } from 'date-fns';
-import { es } from 'date-fns/locale';
-import { Bar, Doughnut } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  ArcElement,
-  Tooltip,
-  Legend,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-} from 'chart.js';
-
-import { pointerOnHover, centerTextPlugin, statusDoughnutDataset, statusDoughnutOptions } from '../../utils/chartConfig';
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
+import SprintBadge from './projectdetail/SprintBadge';
+import SprintDropdown from './projectdetail/SprintDropdown';
+import ProjectCharts from './projectdetail/ProjectCharts';
+import SprintModal from './projectdetail/SprintModal';
 
 const PROYECTO_ESTADO_STYLE = {
   ACTIVO:     { bg: 'rgba(63,185,80,.14)', color: '#4ED164' },
   COMPLETADO: { bg: 'var(--primary-soft)', color: 'var(--primary-hover)' },
   ARCHIVADO:  { bg: 'rgba(139,139,148,.14)', color: '#9B9BA5' },
 };
-const CHART_GRID = 'rgba(255,255,255,0.06)';
-const CHART_TICK = '#8B8B94';
-
-function SprintBadge({ sprint }) {
-  if (!sprint) return null;
-  return (
-    <div className="flex items-center gap-1.5 px-3 py-1 bg-[#DEEBFF] rounded-full">
-      <Zap size={12} className="text-[#0052CC]" />
-      <span className="text-xs font-semibold text-[#0052CC]">{sprint.nombre}</span>
-      {sprint.fechaFin && (
-        <span className="text-[10px] text-[#5E6C84]">
-          · {format(new Date(sprint.fechaFin), 'dd MMM', { locale: es })}
-        </span>
-      )}
-    </div>
-  );
-}
 
 export default function ProjectDetailPage() {
   const { id } = useParams();
@@ -74,14 +43,8 @@ export default function ProjectDetailPage() {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [createTaskStatus, setCreateTaskStatus] = useState('PENDIENTE');
   const [showSprintModal, setShowSprintModal] = useState(false);
-  const [showSprintDropdown, setShowSprintDropdown] = useState(false);
 
-  const [newSprint, setNewSprint] = useState({ nombre: '', fechaInicio: '', fechaFin: '' });
-  const [creatingSprintLoading, setCreatingSprintLoading] = useState(false);
-
-  const canManage = true;
-
-  const load = useCallback(async () => {
+  const load = async () => {
     try {
       const [proj, projTasks] = await Promise.all([
         api.getProject(projectId),
@@ -95,9 +58,9 @@ export default function ProjectDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  };
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { load(); }, [projectId]);
 
   const handleStatusChange = async (taskId, newStatus) => {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, estado: newStatus } : t)));
@@ -106,28 +69,6 @@ export default function ProjectDetailPage() {
     } catch (err) {
       addToast(err.message, 'error');
       load();
-    }
-  };
-
-  const handleCreateSprint = async (e) => {
-    e.preventDefault();
-    if (!newSprint.nombre.trim() || !newSprint.fechaInicio || !newSprint.fechaFin) return;
-    setCreatingSprintLoading(true);
-    try {
-      await api.createSprint({
-        nombre: newSprint.nombre,
-        fechaInicio: new Date(newSprint.fechaInicio).toISOString(),
-        fechaFin: new Date(newSprint.fechaFin).toISOString(),
-        proyectoId: projectId,
-      });
-      addToast('Sprint creado', 'success');
-      setShowSprintModal(false);
-      setNewSprint({ nombre: '', fechaInicio: '', fechaFin: '' });
-      load();
-    } catch (err) {
-      addToast(err.message, 'error');
-    } finally {
-      setCreatingSprintLoading(false);
     }
   };
 
@@ -153,55 +94,7 @@ export default function ProjectDetailPage() {
 
   const myTeamRole = project?.myProjectRole ?? null;
   const canManageProject = myTeamRole === 'JEFE_EQUIPO' || user?.esAdmin;
-  const canCreateSprint  = canManageProject || myTeamRole === 'SUPERVISOR';
-  const canCreateTask    = !!myTeamRole;
-
-  const priorityBarData = {
-    labels: ['Urgente', 'Alta', 'Media', 'Baja'],
-    datasets: [{
-      label: 'Tareas',
-      data: [
-        tasks.filter((t) => t.prioridad === 'URGENTE').length,
-        tasks.filter((t) => t.prioridad === 'ALTA').length,
-        tasks.filter((t) => t.prioridad === 'MEDIA').length,
-        tasks.filter((t) => t.prioridad === 'BAJA').length,
-      ],
-      backgroundColor: ['#F0556B', '#FB923C', '#6E76F1', '#38BDF8'],
-      borderRadius: 8,
-      barThickness: 48,
-    }],
-  };
-
-  const priorityBarOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    onHover: pointerOnHover,
-    scales: {
-      x: { grid: { display: false }, ticks: { font: { size: 12 }, color: CHART_TICK } },
-      y: { ticks: { font: { size: 12 }, stepSize: 1, color: CHART_TICK }, grid: { color: CHART_GRID } },
-    },
-    plugins: {
-      legend: { display: false },
-      tooltip: { callbacks: { label: (ctx) => ` ${ctx.raw} tarea${ctx.raw !== 1 ? 's' : ''}` } },
-    },
-  };
-
-  const statusDoughnutData = {
-    labels: ['Pendiente', 'En progreso', 'En revisión', 'Finalizado'],
-    datasets: [
-      statusDoughnutDataset(
-        [
-          tasks.filter((t) => t.estado === 'PENDIENTE').length,
-          tasks.filter((t) => t.estado === 'EN_PROGRESO').length,
-          tasks.filter((t) => t.estado === 'EN_REVISION').length,
-          tasks.filter((t) => t.estado === 'FINALIZADO').length,
-        ],
-        activeStatus
-      ),
-    ],
-  };
-
-  const statusDoughnutOpts = statusDoughnutOptions(activeStatus, setActiveStatus, 'Tareas', '95%');
+  const canCreateSprint = canManageProject || myTeamRole === 'SUPERVISOR';
 
   if (loading) {
     return (
@@ -226,7 +119,7 @@ export default function ProjectDetailPage() {
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      {}
+      {/* Cabecera del proyecto */}
       <div className="bg-white rounded-xl border border-[#DFE1E6] p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
@@ -281,57 +174,16 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {}
+      {/* Barra de filtros */}
       <div className="flex items-center gap-2 flex-wrap">
-        {}
-        <div className="relative">
-          <button
-            onClick={() => setShowSprintDropdown(!showSprintDropdown)}
-            className="flex items-center gap-2 px-3 py-2 bg-white border border-[#DFE1E6] rounded-lg text-sm font-medium text-[#172B4D] hover:bg-[#F4F5F7] transition-colors"
-          >
-            <Zap size={14} className="text-[#0052CC]" />
-            {selectedSprint === 'ALL' ? 'Todos los sprints' : sprints.find((s) => s.id === selectedSprint)?.nombre || 'Sprint'}
-            <ChevronDown size={13} />
-          </button>
-          {showSprintDropdown && (
-            <>
-              <div className="fixed inset-0 z-10" onClick={() => setShowSprintDropdown(false)} />
-              <div className="absolute left-0 top-full mt-1 bg-white rounded-xl shadow-xl border border-[#DFE1E6] z-20 min-w-48 py-1">
-                <button
-                  onClick={() => { setSelectedSprint('ALL'); setShowSprintDropdown(false); }}
-                  className={`w-full text-left px-3 py-2 text-sm hover:bg-[#F4F5F7] ${selectedSprint === 'ALL' ? 'font-semibold text-[#0052CC]' : 'text-[#172B4D]'}`}
-                >
-                  Todos los sprints
-                </button>
-                {sprints.map((s) => (
-                  <button
-                    key={s.id}
-                    onClick={() => { setSelectedSprint(s.id); setShowSprintDropdown(false); }}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-[#F4F5F7] ${selectedSprint === s.id ? 'font-semibold text-[#0052CC]' : 'text-[#172B4D]'}`}
-                  >
-                    <div>{s.nombre}</div>
-                    <div className="text-[10px] text-[#6B778C]">
-                      {format(new Date(s.fechaInicio), 'dd MMM', { locale: es })} — {format(new Date(s.fechaFin), 'dd MMM', { locale: es })}
-                    </div>
-                  </button>
-                ))}
-                {canCreateSprint && (
-                  <>
-                    <div className="border-t border-[#DFE1E6] my-1" />
-                    <button
-                      onClick={() => { setShowSprintDropdown(false); setShowSprintModal(true); }}
-                      className="w-full text-left px-3 py-2 text-sm text-[#0052CC] hover:bg-[#F4F5F7] flex items-center gap-2"
-                    >
-                      <Plus size={13} /> Crear sprint
-                    </button>
-                  </>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        <SprintDropdown
+          selectedSprint={selectedSprint}
+          onSelect={setSelectedSprint}
+          sprints={sprints}
+          canCreateSprint={canCreateSprint}
+          onCreateSprint={() => setShowSprintModal(true)}
+        />
 
-        {}
         <div className="relative">
           <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6B778C]" />
           <input
@@ -342,7 +194,6 @@ export default function ProjectDetailPage() {
           />
         </div>
 
-        {}
         <select
           value={prioridadFilter}
           onChange={(e) => setPrioridadFilter(e.target.value)}
@@ -355,7 +206,6 @@ export default function ProjectDetailPage() {
           <option value="BAJA">Baja</option>
         </select>
 
-        {}
         <select
           value={asignadoFilter}
           onChange={(e) => setAsignadoFilter(e.target.value)}
@@ -370,7 +220,6 @@ export default function ProjectDetailPage() {
 
         <div className="ml-auto flex items-center gap-2">
           {currentSprint && <SprintBadge sprint={currentSprint} />}
-          {}
           {tasks.length > 0 && (
             <button
               onClick={() => { setCreateTaskStatus('PENDIENTE'); setShowCreateTask(true); }}
@@ -384,25 +233,12 @@ export default function ProjectDetailPage() {
         </div>
       </div>
 
-      {}
+      {/* Gráficas resumen */}
       {tasks.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
-            <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por prioridad</p>
-            <div style={{ height: 230 }}>
-              <Bar data={priorityBarData} options={priorityBarOptions} />
-            </div>
-          </div>
-          <div className="bg-white rounded-2xl border border-[#DFE1E6] p-5">
-            <p className="text-xs font-bold text-[#6B778C] uppercase tracking-wide mb-3">Por estado</p>
-            <div style={{ height: 230 }}>
-              <Doughnut data={statusDoughnutData} options={statusDoughnutOpts} plugins={[centerTextPlugin]} />
-            </div>
-          </div>
-        </div>
+        <ProjectCharts tasks={tasks} activeStatus={activeStatus} setActiveStatus={setActiveStatus} />
       )}
 
-      {}
+      {/* Tablero kanban */}
       <div className="flex-1">
         {tasks.length === 0 ? (
           <div className="text-center py-20 text-[#6B778C]">
@@ -433,7 +269,7 @@ export default function ProjectDetailPage() {
         )}
       </div>
 
-      {}
+      {/* Modal de detalle de tarea */}
       {selectedTask && (
         <TaskDetailModal
           taskId={selectedTask}
@@ -444,7 +280,7 @@ export default function ProjectDetailPage() {
         />
       )}
 
-      {}
+      {/* Modal de nueva tarea */}
       {showCreateTask && (
         <CreateTaskModal
           projectId={projectId}
@@ -463,74 +299,13 @@ export default function ProjectDetailPage() {
         />
       )}
 
-      {}
+      {/* Modal de crear sprint */}
       {showSprintModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4 modal-backdrop">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm modal-center">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-[#DFE1E6]">
-              <h2 className="font-bold text-[#172B4D]">Crear sprint</h2>
-              <button
-                onClick={() => setShowSprintModal(false)}
-                className="p-1.5 rounded-lg hover:bg-[#F4F5F7] text-[#6B778C]"
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={handleCreateSprint} className="p-6 space-y-4">
-              <div>
-                <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Nombre *</label>
-                <input
-                  type="text"
-                  value={newSprint.nombre}
-                  onChange={(e) => setNewSprint((p) => ({ ...p, nombre: e.target.value }))}
-                  required
-                  placeholder="Sprint 1"
-                  className="input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm text-[#172B4D] placeholder-[#B3BAC5]"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Inicio *</label>
-                  <input
-                  
-                    type="date"
-                    value={newSprint.fechaInicio}
-                    onChange={(e) => setNewSprint((p) => ({ ...p, fechaInicio: e.target.value }))}
-                    required
-                    className="input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm text-[#172B4D]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-[#6B778C] uppercase tracking-wide mb-1.5">Fin *</label>
-                  <input
-                    type="date"
-                    value={newSprint.fechaFin}
-                    onChange={(e) => setNewSprint((p) => ({ ...p, fechaFin: e.target.value }))}
-                    required
-                    className="input-field w-full border border-[#DFE1E6] rounded-lg px-3 py-2 text-sm text-[#172B4D]"
-                  />
-                </div>
-              </div>
-              <div className="flex gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => setShowSprintModal(false)}
-                  className="flex-1 py-2 rounded-lg border border-[#DFE1E6] text-sm font-medium text-[#6B778C] hover:bg-[#F4F5F7]"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={creatingSprintLoading}
-                  className="flex-1 py-2 rounded-lg text-white text-sm font-semibold disabled:opacity-60 hover:opacity-90"
-                  style={{ background: 'var(--primary)' }}
-                >
-                  {creatingSprintLoading ? 'Creando...' : 'Crear sprint'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <SprintModal
+          projectId={projectId}
+          onClose={() => setShowSprintModal(false)}
+          onCreated={() => { setShowSprintModal(false); load(); }}
+        />
       )}
     </div>
   );

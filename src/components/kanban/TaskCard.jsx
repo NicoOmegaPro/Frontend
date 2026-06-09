@@ -73,7 +73,6 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
     >
       {celebrating && <div className="celebrate-overlay" />}
 
-      {}
       {task.etiquetas && task.etiquetas.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mb-2.5">
           {task.etiquetas.slice(0, 4).map((te) => {
@@ -103,7 +102,6 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
         )}
       </div>
 
-      {}
       {due && (
         <div
           className="inline-flex items-center gap-1.5 mb-3 px-2 py-1 rounded-md text-[11px] font-medium"
