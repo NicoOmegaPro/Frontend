@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Search } from 'lucide-react';
+import { ArrowLeft, Plus, Search, Users } from 'lucide-react';
 import { api } from '../../api';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
@@ -12,6 +12,7 @@ import SprintBadge from './projectdetail/SprintBadge';
 import SprintDropdown from './projectdetail/SprintDropdown';
 import ProjectCharts from './projectdetail/ProjectCharts';
 import SprintModal from './projectdetail/SprintModal';
+import ProjectTeamsModal from './projectdetail/ProjectTeamsModal';
 
 const PROYECTO_ESTADO_STYLE = {
   ACTIVO:     { bg: 'rgba(63,185,80,.14)', color: '#4ED164' },
@@ -43,6 +44,7 @@ export default function ProjectDetailPage() {
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [createTaskStatus, setCreateTaskStatus] = useState('PENDIENTE');
   const [showSprintModal, setShowSprintModal] = useState(false);
+  const [showTeamsModal, setShowTeamsModal] = useState(false);
 
   const load = async () => {
     try {
@@ -160,7 +162,15 @@ export default function ProjectDetailPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <button
+              onClick={() => setShowTeamsModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-[#DFE1E6] text-sm font-medium text-[#172B4D] hover:bg-[#F4F5F7]"
+              title="Equipos del proyecto"
+            >
+              <Users size={15} />
+              Equipos ({project.equipos?.length ?? 0})
+            </button>
             <div className="text-right hidden sm:block">
               <p className="text-lg font-bold text-[#172B4D]">{progress}%</p>
               <p className="text-[10px] text-[#6B778C]">completado</p>
@@ -305,6 +315,17 @@ export default function ProjectDetailPage() {
           projectId={projectId}
           onClose={() => setShowSprintModal(false)}
           onCreated={() => { setShowSprintModal(false); load(); }}
+        />
+      )}
+
+      {/* Modal de equipos del proyecto */}
+      {showTeamsModal && (
+        <ProjectTeamsModal
+          projectId={projectId}
+          equipos={project.equipos || []}
+          canManage={canManageProject}
+          onClose={() => setShowTeamsModal(false)}
+          onChanged={load}
         />
       )}
     </div>

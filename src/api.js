@@ -38,6 +38,9 @@ export const api = {
   createProject: (data) => request('POST', '/projects', data),
   updateProject: (id, data) => request('PUT', `/projects/${id}`, data),
   deleteProject: (id) => request('DELETE', `/projects/${id}`),
+  getProjectTeamsDisponibles: (id, q) => request('GET', `/projects/${id}/equipos-disponibles${qs({ q })}`),
+  addProjectTeam: (id, equipoId) => request('POST', `/projects/${id}/equipos`, { equipoId }),
+  removeProjectTeam: (id, equipoId) => request('DELETE', `/projects/${id}/equipos/${equipoId}`),
 
   getTasks: (filtros) => {
     const qs = filtros ? '?' + new URLSearchParams(
