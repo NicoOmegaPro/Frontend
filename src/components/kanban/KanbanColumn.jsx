@@ -2,6 +2,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
 import TaskCard from './TaskCard';
 
+// Nombre y color de cada columna según su estado.
 const COL_CONFIG = {
   PENDIENTE:   { label: 'Pendiente',   accent: '#8B8B94' },
   EN_PROGRESO: { label: 'En progreso', accent: '#6E76F1' },
@@ -9,6 +10,7 @@ const COL_CONFIG = {
   FINALIZADO:  { label: 'Finalizado',  accent: '#3FB950' },
 };
 
+// Una columna del tablero = un estado. Es una zona "droppable" que recibe tarjetas.
 export default function KanbanColumn({
   status,
   tasks,
@@ -19,6 +21,8 @@ export default function KanbanColumn({
   justFinishedId,
 }) {
   const cfg = COL_CONFIG[status];
+  // useDroppable marca esta columna como zona donde soltar. id = el estado.
+  // setNodeRef: registra el elemento en dnd-kit · isOver: hay una tarjeta encima.
   const { setNodeRef, isOver } = useDroppable({ id: status });
 
   return (
@@ -39,11 +43,12 @@ export default function KanbanColumn({
         </button>
       </div>
 
+      {/* El cuerpo es la zona droppable: aquí se sueltan las tarjetas */}
       <div
         ref={setNodeRef}
         className={`kanban-col-body flex flex-col gap-2.5 ${isOver ? 'col-drop-active' : ''}`}
       >
-        {tasks.length === 0 && !isOver && (
+        {tasks.length === 0 && !isOver && ( // Si no hay tareas y no se está arrastrando una tarea sobre la columna, mostrar "Sin tareas"
           <div
             className="flex items-center justify-center h-24 text-[12.5px] rounded-xl"
             style={{ color: 'var(--text-faint)', border: '1px dashed var(--border)' }}

@@ -32,11 +32,14 @@ export default function ProjectsPage() {
   const [showCreate, setShowCreate] = useState(false);
   const [isLeader, setIsLeader] = useState(false);
 
+  // Solo el admin o un jefe de equipo puede crear/borrar/archivar proyectos.
   const canManage = user?.esAdmin || isLeader;
 
   const load = async () => {
     setLoading(true);
     try {
+      // Cargo proyectos, tareas y equipos a la vez. Tareas/equipos con .catch para que,
+      // si uno falla, no se caiga toda la página (se queda con [] y sigue).
       const [p, t, eq] = await Promise.all([
         api.getProjects(),
         api.getTasks().catch(() => []),
@@ -44,6 +47,7 @@ export default function ProjectsPage() {
       ]);
       setProjects(Array.isArray(p) ? p : []);
       setTasks(Array.isArray(t) ? t : []);
+      // Es "líder" si lidera al menos un equipo → puede crear proyectos.
       setIsLeader((Array.isArray(eq) ? eq : []).some((e) => e.myRol === 'JEFE_EQUIPO'));
     } catch {
       addToast('Error al cargar proyectos', 'error');
@@ -54,6 +58,8 @@ export default function ProjectsPage() {
 
   useEffect(() => { load(); }, []);
 
+  // stopPropagation: el botón está dentro de la tarjeta clicable; sin esto, borrar
+  // también dispararía el navigate al proyecto.
   const handleDelete = async (e, id) => {
     e.stopPropagation();
     if (!confirm('¿Eliminar este proyecto? Se eliminarán todas sus tareas.')) return;
@@ -77,6 +83,7 @@ export default function ProjectsPage() {
     }
   };
 
+  // Filtro local por pestaña de estado (Todos/Activos/…) + texto de búsqueda.
   const filtered = projects.filter((p) => {
     const matchStatus = filter === 'ALL' || p.estado === filter;
     const matchSearch = p.nombre.toLowerCase().includes(search.toLowerCase()) ||
@@ -150,6 +157,7 @@ export default function ProjectsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {filtered.map((p) => {
+            // % de progreso de cada tarjeta = tareas finalizadas / total de ese proyecto.
             const projectTasks = tasks.filter((t) => t.proyectoId === p.id);
             const done = projectTasks.filter((t) => t.estado === 'FINALIZADO').length;
             const pct = projectTasks.length ? Math.round((done / projectTasks.length) * 100) : 0;

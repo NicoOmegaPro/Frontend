@@ -31,6 +31,7 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
+  // Si abro mi propio id, me redirige a /profile (mi perfil editable) en vez de a la vista pública.
   useEffect(() => {
     if (me && userId === me.id) navigate('/profile', { replace: true });
   }, [me, userId, navigate]);
@@ -68,6 +69,7 @@ export default function UserProfilePage() {
   }
 
   const isAdmin = !!profile.esAdmin;
+  // El backend devuelve equipos como filas EquipoUsuario; saco el equipo de cada una.
   const equipos = (profile.equipos || []).map((m) => m.equipo).filter(Boolean);
 
   return (

@@ -17,6 +17,8 @@ export default function PersonalInfoForm() {
   const [loading, setLoading] = useState(false);
   const [pwLoading, setPwLoading] = useState(false);
 
+  // Helpers "currificados": setField('nombre') devuelve el onChange que actualiza solo ese
+  // campo del objeto. Evita escribir un handler distinto para cada input.
   const setField = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
   const setPwField = (field) => (e) => setPwForm((prev) => ({ ...prev, [field]: e.target.value }));
   const toggleShow = (field) => setShowPw((prev) => ({ ...prev, [field]: !prev[field] }));
@@ -30,6 +32,8 @@ export default function PersonalInfoForm() {
         nombre: form.nombre,
         descripcion: form.descripcion,
       });
+      // Refresco el usuario del contexto para que el cambio se vea al instante en toda la app.
+      // El ?? cubre que la API devuelva {user:{...}} o el usuario plano, según el endpoint.
       setUser((prev) => ({
         ...prev,
         nombre: updated.user?.nombre ?? updated.nombre,

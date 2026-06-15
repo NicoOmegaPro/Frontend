@@ -34,6 +34,8 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--bg)' }}>
+      {/* Panel izquierdo decorativo (solo en pantallas grandes): branding + features.
+          Los dos divs absolute de dentro son el degradado y la rejilla de fondo. */}
       <div
         className="hidden lg:flex flex-col justify-between w-[46%] p-14 relative overflow-hidden"
         style={{ borderRight: '1px solid var(--border)' }}
@@ -67,7 +69,7 @@ export default function LoginPage() {
           </div>
           <h2 className="text-[48px] font-bold leading-[1.1] tracking-tight" style={{ color: 'var(--text)' }}>
             El trabajo de tu equipo,<br />
-            <span style={{ color: 'var(--text-faint)' }}>sin fricción.</span>
+            <span style={{ color: 'var(--text-faint)' }}>en un solo lugar.</span>
           </h2>
           <p className="mt-5 text-[17px] max-w-md" style={{ color: 'var(--text-muted)' }}>
             Gestión de proyectos colaborativa, diseñada para moverse rápido.

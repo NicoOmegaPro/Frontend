@@ -9,6 +9,7 @@ import MyTasks from './dashboard/MyTasks';
 import RecentActivity from './dashboard/RecentActivity';
 import ProjectsSection from './dashboard/ProjectsSection';
 
+// Una semana en milisegundos (para comparar fechas con Date.now()).
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
 export default function DashboardPage() {
@@ -20,6 +21,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Las 3 llamadas a la vez; cada una con su .catch para que un fallo no tumbe el dashboard.
     Promise.all([
       api.getProjects().catch(() => []),
       api.getTasks().catch(() => []),
@@ -32,16 +34,19 @@ export default function DashboardPage() {
   }, []);
 
   const now = Date.now();
+  // Creadas en los últimos 7 días (entre hace una semana y ahora).
   const creadasRecientes = tasks.filter((t) => {
     if (!t.createdAt) return false;
     const c = new Date(t.createdAt).getTime();
     return c <= now && now - c <= WEEK;
   });
+  // Vencen en los próximos 7 días y aún no están finalizadas.
   const vencenPronto = tasks.filter((t) => {
     if (!t.fechaVencimiento || t.estado === 'FINALIZADO') return false;
     const v = new Date(t.fechaVencimiento).getTime();
     return v >= now && v - now <= WEEK;
   });
+  // Urgentes sin terminar, mías o sin asignar (== null compara null y undefined a la vez).
   const tareasUrgentes = tasks.filter(
     (t) =>
       t.prioridad === 'URGENTE' &&

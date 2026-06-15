@@ -10,6 +10,8 @@ import {
 } from 'chart.js';
 import { pointerOnHover, centerTextPlugin, statusDoughnutDataset, statusDoughnutOptions } from '../../../utils/chartConfig';
 
+// Chart.js es modular: hay que "registrar" las piezas que se usan (barras + doughnut)
+// o no se dibujan. Esto se hace una vez al cargar el módulo.
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const CHART_GRID = 'rgba(255,255,255,0.06)';

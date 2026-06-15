@@ -23,6 +23,7 @@ function PriorityBadge({ prioridad }) {
   );
 }
 
+// Versión simplificada de la tarjeta que se ve flotando mientras arrastras (el DragOverlay).
 export function TaskCardOverlay({ task }) {
   return (
     <div className="surface drag-overlay p-3.5 w-[290px]">
@@ -32,7 +33,11 @@ export function TaskCardOverlay({ task }) {
   );
 }
 
+// Tarjeta de una tarea. Es el elemento "draggable" que se arrastra entre columnas.
 export default function TaskCard({ task, onClick, subtareas = [], comentarios = [], justFinished = false }) {
+  // useDraggable hace la tarjeta arrastrable:
+  // setNodeRef = registra el nodo · attributes/listeners = enganchan el arrastre
+  // transform = desplazamiento mientras arrastras · isDragging = si se está arrastrando
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: String(task.id),
     data: { task },
@@ -47,22 +52,26 @@ export default function TaskCard({ task, onClick, subtareas = [], comentarios = 
     return () => clearTimeout(t);
   }, [justFinished]);
 
+  // Mueve la tarjeta con el cursor; mientras arrastras la oculto (opacity 0) porque
+  // su "copia" la dibuja el DragOverlay.
   const style = {
     transform: CSS.Translate.toString(transform),
     opacity: isDragging ? 0 : 1,
     zIndex: isDragging ? 999 : undefined,
   };
 
+  // Contadores del pie: uso la lista cargada y, si no hay, el _count que manda el backend.
   const doneSubtasks = subtareas.filter((s) => s.completada).length;
   const totalSubtasks = subtareas.length || task._count?.subtareas || 0;
   const totalComentarios = comentarios.length || task._count?.comentarios || 0;
   const totalAdjuntos = task._count?.adjuntos || 0;
 
   const due = task.fechaVencimiento ? new Date(task.fechaVencimiento) : null;
-  const vencida = due && task.estado !== 'FINALIZADO' && isPast(due) && !isToday(due);
-  const venceHoy = due && task.estado !== 'FINALIZADO' && isToday(due);
+  const vencida = due && task.estado !== 'FINALIZADO' && isPast(due) && !isToday(due); // isPast devuelve true si la fecha es anterior a hoy, pero también devuelve true si es hoy, por eso agrego !isToday(due) para que solo sea vencida si es anterior a hoy.
+  const venceHoy = due && task.estado !== 'FINALIZADO' && isToday(due); // isToday devuelve true si la fecha es hoy, por eso no necesito agregar !isPast(due) porque si es hoy, no es vencida.
 
   return (
+    // ref + attributes + listeners = lo que conecta este div con el drag de dnd-kit
     <div
       ref={setNodeRef}
       style={style}

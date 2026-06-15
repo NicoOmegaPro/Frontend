@@ -64,6 +64,8 @@ export default function ProjectDetailPage() {
 
   useEffect(() => { load(); }, [projectId]);
 
+  // Update optimista: cambio el estado en pantalla al instante (drag fluido) y, si la
+  // API falla, recargo para volver al estado real del servidor.
   const handleStatusChange = async (taskId, newStatus) => {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, estado: newStatus } : t)));
     try {
@@ -76,6 +78,8 @@ export default function ProjectDetailPage() {
 
   const currentSprint = sprints.find((s) => s.id === selectedSprint) || null;
 
+  // Aplica todos los filtros de la barra (sprint, texto, prioridad, asignado) a la vez.
+  // 'ME' = mis tareas; cualquier otro valor del select es el id del usuario asignado.
   const filteredTasks = tasks.filter((t) => {
     if (selectedSprint !== 'ALL' && t.sprintId !== selectedSprint) return false;
     if (searchFilter && !t.titulo.toLowerCase().includes(searchFilter.toLowerCase())) return false;
@@ -90,13 +94,15 @@ export default function ProjectDetailPage() {
   const doneTasks = tasks.filter((t) => t.estado === 'FINALIZADO').length;
   const progress = tasks.length ? Math.round((doneTasks / tasks.length) * 100) : 0;
 
+  // Miembros = unión de todos los equipos del proyecto (lo calcula el backend en .miembros).
   const projectMembers = (project?.miembros || [])
     .map((m) => m.usuario)
     .filter(Boolean);
 
+  // Permisos según mi rol en el proyecto (lo manda el backend como myProjectRole).
   const myTeamRole = project?.myProjectRole ?? null;
-  const canManageProject = myTeamRole === 'JEFE_EQUIPO' || user?.esAdmin;
-  const canCreateSprint = canManageProject || myTeamRole === 'SUPERVISOR';
+  const canManageProject = myTeamRole === 'JEFE_EQUIPO' || user?.esAdmin; // editar proyecto, gestionar equipos
+  const canCreateSprint = canManageProject || myTeamRole === 'SUPERVISOR'; // jefes y supervisores crean sprints
 
   if (loading) {
     return (

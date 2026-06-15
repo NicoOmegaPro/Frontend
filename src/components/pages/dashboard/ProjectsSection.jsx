@@ -18,7 +18,7 @@ export default function ProjectsSection({ projects, tasks, onProjectClick }) {
       label: '% completado',
       data: projectsSlice.map((p) => {
         const pt = tasks.filter((t) => t.proyectoId === p.id);
-        return pt.length ? Math.round((pt.filter((t) => t.estado === 'FINALIZADO').length / pt.length) * 100) : 0;
+        return pt.length ? Math.round((pt.filter((t) => t.estado === 'FINALIZADO').length / pt.length) * 100) : 0; // Porcentaje de tareas completadas
       }),
       backgroundColor: '#6E76F1',
       borderRadius: 6,
@@ -29,7 +29,7 @@ export default function ProjectsSection({ projects, tasks, onProjectClick }) {
   const projectBarOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y',
+    indexAxis: 'y', // Horizontal bar chart
     scales: {
       x: {
         min: 0,

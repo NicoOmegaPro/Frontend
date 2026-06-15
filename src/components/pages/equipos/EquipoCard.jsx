@@ -15,6 +15,8 @@ export default function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }
   const cardRef = useRef(null);
   const [expanded, setExpanded] = useState(false);
 
+  // Si llegamos con ?open=ID, despliega esta tarjeta y baja hasta ella (con un pequeño
+  // delay para que el DOM ya esté pintado al hacer scroll).
   useEffect(() => {
     if (!autoOpen) return;
     setExpanded(true);
@@ -24,8 +26,8 @@ export default function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }
   const [inviting, setInviting] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
 
-  const isJefe = equipo.myRol === 'JEFE_EQUIPO';
-  const membersPg = useClientPagination(equipo.usuarios || [], 6);
+  const isJefe = equipo.myRol === 'JEFE_EQUIPO'; // ¿soy el jefe de ESTE equipo? (controla qué acciones veo)
+  const membersPg = useClientPagination(equipo.usuarios || [], 6); // miembros paginados de 6 en 6
   const imgRef = useRef(null);
   const [uploadingImg, setUploadingImg] = useState(false);
 
@@ -219,8 +221,9 @@ export default function EquipoCard({ equipo, currentUserId, onUpdate, autoOpen }
               Miembros ({equipo.usuarios?.length ?? 0})
             </p>
             {membersPg.pageItems.map((m) => {
-              const isMe = m.usuarioId === currentUserId;
-              const isJefeTarget = m.rol === 'JEFE_EQUIPO';
+              const isMe = m.usuarioId === currentUserId;       // esta fila soy yo
+              const isJefeTarget = m.rol === 'JEFE_EQUIPO';     // esta fila es el jefe
+              // Cambiar rol / expulsar solo si soy jefe, y no sobre mí mismo ni sobre otro jefe.
               return (
                 <div
                   key={m.usuarioId}

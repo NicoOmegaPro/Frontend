@@ -39,5 +39,6 @@ export default function StatCard({ icon: Icon, label, value, sub, color, items, 
         </ul>
       )}
     </div>
+    //Cartas que en DashBoard se rteutilizan 4 veces para mostrar las Stats.
   );
 }

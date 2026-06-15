@@ -21,13 +21,13 @@ export default function Sidebar({ collapsed, setCollapsed }) {
 
   useEffect(() => {
     api.getProjects()
-      .then((data) => setProjects(Array.isArray(data) ? data.slice(0, 6) : []))
+      .then((data) => setProjects(Array.isArray(data) ? data.slice(0, 6) : [])) // solo muestro los 6 primeros proyectos, si hay más, el usuario puede ir a la página de proyectos para verlos todos
       .catch(() => {});
   }, []);
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/login'); // redirijo al login después de cerrar sesión
   };
 
   return (

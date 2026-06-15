@@ -10,11 +10,12 @@ import EquipoCard from './equipos/EquipoCard';
 export default function EquiposPage() {
   const { user } = useAuth();
   const location = useLocation();
+  // ?open=ID en la URL: al llegar desde una notificación, abre ese equipo directamente.
   const openId = parseInt(new URLSearchParams(location.search).get('open')) || null;
   const [equipos, setEquipos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
-  const equiposPg = useClientPagination(equipos, 5);
+  const equiposPg = useClientPagination(equipos, 5); // paginación local, 5 equipos por página
 
   const load = async () => {
     setLoading(true);
@@ -22,9 +23,10 @@ export default function EquiposPage() {
       const data = await api.getEquipos();
       const list = Array.isArray(data) ? data : [];
       setEquipos(list);
+      // Si venimos con ?open=ID, salto a la página donde está ese equipo para que se vea.
       if (openId) {
         const idx = list.findIndex((e) => e.id === openId);
-        if (idx >= 0) equiposPg.setPage(Math.floor(idx / 5) + 1);
+        if (idx >= 0) equiposPg.setPage(Math.floor(idx / 5) + 1); // 5 equipos por página
       }
     } catch {
       setEquipos([]);

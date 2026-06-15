@@ -23,16 +23,16 @@ export default function Topbar({ collapsed = false }) {
   const [showNotifs, setShowNotifs] = useState(false);
   const ref = useRef(null);
 
-  const pageTitle = PAGE_TITLES.find((p) => location.pathname.startsWith(p.match))?.title || 'Noir';
+  const pageTitle = PAGE_TITLES.find((p) => location.pathname.startsWith(p.match))?.title || 'Noir'; //title de la página según la ruta actual, si no coincide con ninguna ruta conocida, mostrar "Noir"
 
-  useEffect(() => {
+  useEffect(() => { // Al montar, cargo las notificaciones del usuario. Si no hay usuario, no hago nada.
     if (!user) return;
-    api.getNotificaciones({ limit: 20 })
+    api.getNotificaciones({ limit: 20 }) 
       .then((data) => setNotifications(Array.isArray(data?.items) ? data.items : []))
       .catch(() => {});
   }, [user]);
 
-  useEffect(() => {
+  useEffect(() => { // Cierro el dropdown de notificaciones si hago click fuera de él. En cualquier parte de la pag.
     function onClickOutside(e) {
       if (ref.current && !ref.current.contains(e.target)) setShowNotifs(false);
     }
@@ -45,10 +45,10 @@ export default function Topbar({ collapsed = false }) {
   const markRead = async (n) => {
     if (n.leida) return;
     await api.updateNotificacion(n.id, { leida: true }).catch(() => {});
-    setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, leida: true } : x)));
+    setNotifications((prev) => prev.map((x) => (x.id === n.id ? { ...x, leida: true } : x))); // actualizo el estado local para que desaparezca el punto rojo sin recargar la página
   };
 
-  const markAll = async () => {
+  const markAll = async () => { // marco todas como leídas. No hago nada si no hay notificaciones.
     await api.marcarTodasNotificaciones().catch(() => {});
     setNotifications((prev) => prev.map((n) => ({ ...n, leida: true })));
   };
